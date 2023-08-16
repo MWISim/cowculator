@@ -345,7 +345,12 @@ export default function CombatTable({ action, data, kph }: Props) {
             <Icon hrid={x.itemHrid} /> {x.itemName}
           </Flex>
         </td>
-        <td>{getFriendlyIntString(x.dropsPerHour, 2)}</td>
+        <td>
+          {getFriendlyIntString(
+            fromRaw ? x.dropsPerHour * 24 : x.dropsPerHour,
+            2
+          )}
+        </td>
         <td>
           <NumberInput
             hideControls
@@ -401,6 +406,7 @@ export default function CombatTable({ action, data, kph }: Props) {
                 <th>{fromRaw ? "Rate/day" : "Rate/hr"}</th>
                 <th>Price/item</th>
                 <th>{fromRaw ? "Coin/day" : "Coin/hr"}</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
