@@ -3,7 +3,7 @@ import { getFriendlyIntString } from "../helpers/Formatting";
 import { ItemDetail } from "../models/Client";
 import { MarketValue } from "../models/Market";
 import { ApiData } from "../services/ApiService";
-import { Flex, NumberInput, Table } from "@mantine/core";
+import { Flex, NumberInput, Switch, Table } from "@mantine/core";
 import Icon from "./Icon";
 
 interface MonsterSpawnOverride {
@@ -252,6 +252,7 @@ export default function CombatTable({ action, data, kph }: Props) {
   const [priceOverrides, setPriceOverrides] = useState<{
     [key: string]: number | "";
   }>({});
+  const [fromRaw, setFromRaw] = useState(false);
   const enemies =
     planetSpawnRates[action] ??
     data.actionDetails[action].monsterSpawnInfo.spawns ??
@@ -329,7 +330,7 @@ export default function CombatTable({ action, data, kph }: Props) {
     }, new Map<string, LootData>());
 
   const lootData = Array.from(lootMap.values());
-
+  console.log(fromRaw);
   const lootRows = lootData.map((x, i) => {
     return (
       <tr key={`${action}/loot/${i}/${x.itemHrid}`}>
@@ -359,7 +360,21 @@ export default function CombatTable({ action, data, kph }: Props) {
             }
           />
         </td>
-        <td>{getFriendlyIntString(x.coinPerHour)}</td>
+        <td>
+          {getFriendlyIntString(fromRaw ? x.coinPerHour * 24 : x.coinPerHour)}
+        </td>
+        <td>
+          {i === lootData.length - 1 && (
+            <Switch
+              onLabel="DAY"
+              offLabel="HOUR"
+              label="Per hour or day"
+              size="xl"
+              checked={fromRaw}
+              onChange={(event) => setFromRaw(event.currentTarget.checked)}
+            />
+          )}
+        </td>
       </tr>
     );
   });
@@ -383,16 +398,21 @@ export default function CombatTable({ action, data, kph }: Props) {
             <thead>
               <tr>
                 <th>Loot</th>
-                <th>Rate/hr</th>
+                <th>{fromRaw ? "Rate/day" : "Rate/hr"}</th>
                 <th>Price/item</th>
-                <th>Coin/hr</th>
+                <th>{fromRaw ? "Coin/day" : "Coin/hr"}</th>
               </tr>
             </thead>
             <tbody>
               {lootRows}
               <tr>
                 <th colSpan={3}>Total</th>
-                <td>{getFriendlyIntString(totalCoinsPerHour)}</td>
+                <td>
+                  {getFriendlyIntString(
+                    fromRaw ? totalCoinsPerHour * 24 : totalCoinsPerHour
+                  )}
+                </td>
+                <td></td>
               </tr>
             </tbody>
           </Table>
