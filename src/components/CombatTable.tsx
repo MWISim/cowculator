@@ -256,17 +256,8 @@ export default function CombatTable({ action, data, kph }: Props) {
     planetSpawnRates[action] ??
     data.actionDetails[action].monsterSpawnInfo.spawns ??
     [];
-  // console.log(action);
-  // console.log(planetSpawnRates[action]);
-  // console.log(enemies);
-  // console.log(data.actionDetails[action].monsterSpawnInfo.spawns);
-  // console.log(data.actionDetails[action]);
   const encounterRows = enemies.map((x) => {
     const monster = data.combatMonsterDetails[x.combatMonsterHrid];
-    // console.log(x);
-    // console.log(x.combatMonsterHrid);
-    // console.log(data.combatMonsterDetails);
-    // console.log(monster);
     return (
       <tr key={action + "/encounterRate/" + x.combatMonsterHrid}>
         <td>
