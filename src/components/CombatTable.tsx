@@ -14,186 +14,222 @@ interface MonsterSpawnOverride {
 const planetSpawnRates: { [key: string]: MonsterSpawnOverride[] } = {
   "/actions/combat/smelly_planet": [
     {
-      combatMonsterHrid: "/combat_monsters/fly",
+      combatMonsterHrid: "/monsters/fly",
       rate: 0.743865,
     },
     {
-      combatMonsterHrid: "/combat_monsters/rat",
+      combatMonsterHrid: "/monsters/rat",
       rate: 0.711656,
     },
     {
-      combatMonsterHrid: "/combat_monsters/skunk",
+      combatMonsterHrid: "/monsters/skunk",
       rate: 0.67229,
     },
     {
-      combatMonsterHrid: "/combat_monsters/porcupine",
+      combatMonsterHrid: "/monsters/porcupine",
       rate: 0.630879,
     },
     {
-      combatMonsterHrid: "/combat_monsters/slimy",
+      combatMonsterHrid: "/monsters/slimy",
       rate: 0.5864,
     },
   ],
   "/actions/combat/swamp_planet": [
     {
-      combatMonsterHrid: "/combat_monsters/frog",
+      combatMonsterHrid: "/monsters/frog",
       rate: 0.891993,
     },
     {
-      combatMonsterHrid: "/combat_monsters/snake",
+      combatMonsterHrid: "/monsters/snake",
       rate: 0.888217,
     },
     {
-      combatMonsterHrid: "/combat_monsters/swampy",
+      combatMonsterHrid: "/monsters/swampy",
       rate: 0.774169,
     },
     {
-      combatMonsterHrid: "/combat_monsters/alligator",
+      combatMonsterHrid: "/monsters/alligator",
       rate: 0.715256,
+    },
+    {
+      combatMonsterHrid: "/monsters/giant_shoebill",
+      rate: 0.1,
     },
   ],
   "/actions/combat/aqua_planet": [
     {
-      combatMonsterHrid: "/combat_monsters/sea_snail",
+      combatMonsterHrid: "/monsters/sea_snail",
       rate: 0.739628,
     },
     {
-      combatMonsterHrid: "/combat_monsters/crab",
+      combatMonsterHrid: "/monsters/crab",
       rate: 0.668097,
     },
     {
-      combatMonsterHrid: "/combat_monsters/aquahorse",
+      combatMonsterHrid: "/monsters/aquahorse",
       rate: 0.656652,
     },
     {
-      combatMonsterHrid: "/combat_monsters/nom_nom",
+      combatMonsterHrid: "/monsters/nom_nom",
       rate: 0.655221,
     },
     {
-      combatMonsterHrid: "/combat_monsters/turtle",
+      combatMonsterHrid: "/monsters/turtle",
       rate: 0.560801,
+    },
+    {
+      combatMonsterHrid: "/monsters/marine_huntress",
+      rate: 0.1,
     },
   ],
   "/actions/combat/jungle_planet": [
     {
-      combatMonsterHrid: "/combat_monsters/jungle_sprite",
+      combatMonsterHrid: "/monsters/jungle_sprite",
       rate: 0.82931,
     },
     {
-      combatMonsterHrid: "/combat_monsters/myconid",
+      combatMonsterHrid: "/monsters/myconid",
       rate: 0.772413,
     },
     {
-      combatMonsterHrid: "/combat_monsters/treant",
+      combatMonsterHrid: "/monsters/treant",
       rate: 0.715517,
     },
     {
-      combatMonsterHrid: "/combat_monsters/centaur_archer",
+      combatMonsterHrid: "/monsters/centaur_archer",
       rate: 0.660344,
+    },
+    {
+      combatMonsterHrid: "/monsters/luna_empress",
+      rate: 0.1,
     },
   ],
   "/actions/combat/gobo_planet": [
     {
-      combatMonsterHrid: "/combat_monsters/gobo_stabby",
+      combatMonsterHrid: "/monsters/gobo_stabby",
       rate: 0.4,
     },
     {
-      combatMonsterHrid: "/combat_monsters/gobo_slashy",
+      combatMonsterHrid: "/monsters/gobo_slashy",
       rate: 0.4,
     },
     {
-      combatMonsterHrid: "/combat_monsters/gobo_smashy",
+      combatMonsterHrid: "/monsters/gobo_smashy",
       rate: 0.4,
     },
     {
-      combatMonsterHrid: "/combat_monsters/gobo_shooty",
+      combatMonsterHrid: "/monsters/gobo_shooty",
       rate: 0.4,
     },
     {
-      combatMonsterHrid: "/combat_monsters/gobo_boomy",
+      combatMonsterHrid: "/monsters/gobo_boomy",
       rate: 0.4,
+    },
+    {
+      combatMonsterHrid: "/monsters/gobo_chieftain",
+      rate: 0.1,
     },
   ],
   "/actions/combat/bear_with_it": [
     {
-      combatMonsterHrid: "/combat_monsters/gummy_bear",
+      combatMonsterHrid: "/monsters/gummy_bear",
       rate: 0.587196,
     },
     {
-      combatMonsterHrid: "/combat_monsters/panda",
+      combatMonsterHrid: "/monsters/panda",
       rate: 0.479028,
     },
     {
-      combatMonsterHrid: "/combat_monsters/black_bear",
+      combatMonsterHrid: "/monsters/black_bear",
       rate: 0.514348,
     },
     {
-      combatMonsterHrid: "/combat_monsters/grizzly_bear",
+      combatMonsterHrid: "/monsters/grizzly_bear",
       rate: 0.485651,
     },
     {
-      combatMonsterHrid: "/combat_monsters/polar_bear",
+      combatMonsterHrid: "/monsters/polar_bear",
       rate: 0.450331,
+    },
+    {
+      combatMonsterHrid: "/monsters/red_panda",
+      rate: 0.1,
     },
   ],
   "/actions/combat/golem_cave": [
     {
-      combatMonsterHrid: "/combat_monsters/magnetic_golem",
+      combatMonsterHrid: "/monsters/magnetic_golem",
       rate: 0.88421,
     },
     {
-      combatMonsterHrid: "/combat_monsters/stalactite_golem",
+      combatMonsterHrid: "/monsters/stalactite_golem",
       rate: 0.778947,
     },
     {
-      combatMonsterHrid: "/combat_monsters/granite_golem",
+      combatMonsterHrid: "/monsters/granite_golem",
       rate: 0.705263,
+    },
+    {
+      combatMonsterHrid: "/monsters/crystal_colossus",
+      rate: 0.1,
     },
   ],
   "/actions/combat/sorcerers_tower": [
     {
-      combatMonsterHrid: "/combat_monsters/novice_sorcerer",
+      combatMonsterHrid: "/monsters/novice_sorcerer",
       rate: 0.96124,
     },
     {
-      combatMonsterHrid: "/combat_monsters/ice_sorcerer",
+      combatMonsterHrid: "/monsters/ice_sorcerer",
       rate: 0.89664,
     },
     {
-      combatMonsterHrid: "/combat_monsters/flame_sorcerer",
+      combatMonsterHrid: "/monsters/flame_sorcerer",
       rate: 0.899224,
     },
     {
-      combatMonsterHrid: "/combat_monsters/elementalist",
+      combatMonsterHrid: "/monsters/elementalist",
       rate: 0.749354,
+    },
+    {
+      combatMonsterHrid: "/monsters/chronofrost_sorcerer",
+      rate: 0.1,
     },
   ],
   "/actions/combat/planet_of_the_eyes": [
     {
-      combatMonsterHrid: "/combat_monsters/eye",
+      combatMonsterHrid: "/monsters/eye",
       rate: 0.888691,
     },
     {
-      combatMonsterHrid: "/combat_monsters/eyes",
+      combatMonsterHrid: "/monsters/eyes",
       rate: 0.778235,
     },
     {
-      combatMonsterHrid: "/combat_monsters/veyes",
+      combatMonsterHrid: "/monsters/veyes",
       rate: 0.703626,
+    },
+    {
+      combatMonsterHrid: "/monsters/the_watcher",
+      rate: 0.1,
     },
   ],
   "/actions/combat/twilight_zone": [
     {
-      combatMonsterHrid: "/combat_monsters/zombie",
+      combatMonsterHrid: "/monsters/zombie",
       rate: 0.875862,
     },
     {
-      combatMonsterHrid: "/combat_monsters/vampire",
+      combatMonsterHrid: "/monsters/vampire",
       rate: 0.786206,
     },
     {
-      combatMonsterHrid: "/combat_monsters/werewolf",
+      combatMonsterHrid: "/monsters/werewolf",
       rate: 0.703448,
+    },
+    {
+      combatMonsterHrid: "/monsters/dusk_revenant",
+      rate: 0.1,
     },
   ],
 };
@@ -220,9 +256,17 @@ export default function CombatTable({ action, data, kph }: Props) {
     planetSpawnRates[action] ??
     data.actionDetails[action].monsterSpawnInfo.spawns ??
     [];
-
+  // console.log(action);
+  // console.log(planetSpawnRates[action]);
+  // console.log(enemies);
+  // console.log(data.actionDetails[action].monsterSpawnInfo.spawns);
+  // console.log(data.actionDetails[action]);
   const encounterRows = enemies.map((x) => {
     const monster = data.combatMonsterDetails[x.combatMonsterHrid];
+    // console.log(x);
+    // console.log(x.combatMonsterHrid);
+    // console.log(data.combatMonsterDetails);
+    // console.log(monster);
     return (
       <tr key={action + "/encounterRate/" + x.combatMonsterHrid}>
         <td>
