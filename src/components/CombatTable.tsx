@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getFriendlyIntString } from "../helpers/Formatting";
 import { ItemDetail } from "../models/Client";
 import { MarketValue } from "../models/Market";
@@ -6,233 +6,10 @@ import { ApiData } from "../services/ApiService";
 import { Flex, NumberInput, Switch, Table } from "@mantine/core";
 import Icon from "./Icon";
 
-interface MonsterSpawnOverride {
+type Enemies = {
   combatMonsterHrid: string;
   rate: number;
-}
-
-const planetSpawnRates: { [key: string]: MonsterSpawnOverride[] } = {
-  "/actions/combat/smelly_planet": [
-    {
-      combatMonsterHrid: "/monsters/fly",
-      rate: 0.743865,
-    },
-    {
-      combatMonsterHrid: "/monsters/rat",
-      rate: 0.711656,
-    },
-    {
-      combatMonsterHrid: "/monsters/skunk",
-      rate: 0.67229,
-    },
-    {
-      combatMonsterHrid: "/monsters/porcupine",
-      rate: 0.630879,
-    },
-    {
-      combatMonsterHrid: "/monsters/slimy",
-      rate: 0.5864,
-    },
-  ],
-  "/actions/combat/swamp_planet": [
-    {
-      combatMonsterHrid: "/monsters/frog",
-      rate: 0.891993,
-    },
-    {
-      combatMonsterHrid: "/monsters/snake",
-      rate: 0.888217,
-    },
-    {
-      combatMonsterHrid: "/monsters/swampy",
-      rate: 0.774169,
-    },
-    {
-      combatMonsterHrid: "/monsters/alligator",
-      rate: 0.715256,
-    },
-    {
-      combatMonsterHrid: "/monsters/giant_shoebill",
-      rate: 0.1,
-    },
-  ],
-  "/actions/combat/aqua_planet": [
-    {
-      combatMonsterHrid: "/monsters/sea_snail",
-      rate: 0.739628,
-    },
-    {
-      combatMonsterHrid: "/monsters/crab",
-      rate: 0.668097,
-    },
-    {
-      combatMonsterHrid: "/monsters/aquahorse",
-      rate: 0.656652,
-    },
-    {
-      combatMonsterHrid: "/monsters/nom_nom",
-      rate: 0.655221,
-    },
-    {
-      combatMonsterHrid: "/monsters/turtle",
-      rate: 0.560801,
-    },
-    {
-      combatMonsterHrid: "/monsters/marine_huntress",
-      rate: 0.1,
-    },
-  ],
-  "/actions/combat/jungle_planet": [
-    {
-      combatMonsterHrid: "/monsters/jungle_sprite",
-      rate: 0.82931,
-    },
-    {
-      combatMonsterHrid: "/monsters/myconid",
-      rate: 0.772413,
-    },
-    {
-      combatMonsterHrid: "/monsters/treant",
-      rate: 0.715517,
-    },
-    {
-      combatMonsterHrid: "/monsters/centaur_archer",
-      rate: 0.660344,
-    },
-    {
-      combatMonsterHrid: "/monsters/luna_empress",
-      rate: 0.1,
-    },
-  ],
-  "/actions/combat/gobo_planet": [
-    {
-      combatMonsterHrid: "/monsters/gobo_stabby",
-      rate: 0.4,
-    },
-    {
-      combatMonsterHrid: "/monsters/gobo_slashy",
-      rate: 0.4,
-    },
-    {
-      combatMonsterHrid: "/monsters/gobo_smashy",
-      rate: 0.4,
-    },
-    {
-      combatMonsterHrid: "/monsters/gobo_shooty",
-      rate: 0.4,
-    },
-    {
-      combatMonsterHrid: "/monsters/gobo_boomy",
-      rate: 0.4,
-    },
-    {
-      combatMonsterHrid: "/monsters/gobo_chieftain",
-      rate: 0.1,
-    },
-  ],
-  "/actions/combat/bear_with_it": [
-    {
-      combatMonsterHrid: "/monsters/gummy_bear",
-      rate: 0.587196,
-    },
-    {
-      combatMonsterHrid: "/monsters/panda",
-      rate: 0.479028,
-    },
-    {
-      combatMonsterHrid: "/monsters/black_bear",
-      rate: 0.514348,
-    },
-    {
-      combatMonsterHrid: "/monsters/grizzly_bear",
-      rate: 0.485651,
-    },
-    {
-      combatMonsterHrid: "/monsters/polar_bear",
-      rate: 0.450331,
-    },
-    {
-      combatMonsterHrid: "/monsters/red_panda",
-      rate: 0.1,
-    },
-  ],
-  "/actions/combat/golem_cave": [
-    {
-      combatMonsterHrid: "/monsters/magnetic_golem",
-      rate: 0.88421,
-    },
-    {
-      combatMonsterHrid: "/monsters/stalactite_golem",
-      rate: 0.778947,
-    },
-    {
-      combatMonsterHrid: "/monsters/granite_golem",
-      rate: 0.705263,
-    },
-    {
-      combatMonsterHrid: "/monsters/crystal_colossus",
-      rate: 0.1,
-    },
-  ],
-  "/actions/combat/sorcerers_tower": [
-    {
-      combatMonsterHrid: "/monsters/novice_sorcerer",
-      rate: 0.96124,
-    },
-    {
-      combatMonsterHrid: "/monsters/ice_sorcerer",
-      rate: 0.89664,
-    },
-    {
-      combatMonsterHrid: "/monsters/flame_sorcerer",
-      rate: 0.899224,
-    },
-    {
-      combatMonsterHrid: "/monsters/elementalist",
-      rate: 0.749354,
-    },
-    {
-      combatMonsterHrid: "/monsters/chronofrost_sorcerer",
-      rate: 0.1,
-    },
-  ],
-  "/actions/combat/planet_of_the_eyes": [
-    {
-      combatMonsterHrid: "/monsters/eye",
-      rate: 0.888691,
-    },
-    {
-      combatMonsterHrid: "/monsters/eyes",
-      rate: 0.778235,
-    },
-    {
-      combatMonsterHrid: "/monsters/veyes",
-      rate: 0.703626,
-    },
-    {
-      combatMonsterHrid: "/monsters/the_watcher",
-      rate: 0.1,
-    },
-  ],
-  "/actions/combat/twilight_zone": [
-    {
-      combatMonsterHrid: "/monsters/zombie",
-      rate: 0.875862,
-    },
-    {
-      combatMonsterHrid: "/monsters/vampire",
-      rate: 0.786206,
-    },
-    {
-      combatMonsterHrid: "/monsters/werewolf",
-      rate: 0.703448,
-    },
-    {
-      combatMonsterHrid: "/monsters/dusk_revenant",
-      rate: 0.1,
-    },
-  ],
-};
+}[];
 
 type LootData = {
   itemHrid: string;
@@ -253,10 +30,115 @@ export default function CombatTable({ action, data, kph }: Props) {
     [key: string]: number | "";
   }>({});
   const [fromRaw, setFromRaw] = useState(false);
-  const enemies =
-    planetSpawnRates[action] ??
-    data.actionDetails[action].monsterSpawnInfo.spawns ??
-    [];
+
+  const getRandomEncounter = () => {
+    let encountersKilled = 0;
+    if (
+      data.actionDetails[action].monsterSpawnInfo.bossFightMonsters &&
+      encountersKilled ==
+        data.actionDetails[action].monsterSpawnInfo.battlesPerBoss
+    ) {
+      encountersKilled = 1;
+      return data.actionDetails[action].monsterSpawnInfo.bossFightMonsters.pop;
+    }
+
+    const totalWeight = data.actionDetails[
+      action
+    ].monsterSpawnInfo.spawns!.reduce((prev, cur) => prev + cur.rate, 0);
+
+    const encounterHrids = [];
+    let totalStrength = 0;
+
+    outer: for (
+      let i = 0;
+      i < data.actionDetails[action].monsterSpawnInfo.maxSpawnCount;
+      i++
+    ) {
+      const randomWeight = totalWeight * Math.random();
+      let cumulativeWeight = 0;
+
+      for (const spawn of data.actionDetails[action].monsterSpawnInfo.spawns!) {
+        cumulativeWeight += spawn.rate;
+        if (randomWeight <= cumulativeWeight) {
+          totalStrength += spawn.strength;
+
+          if (
+            totalStrength <=
+            data.actionDetails[action].monsterSpawnInfo.maxTotalStrength
+          ) {
+            encounterHrids.push(spawn.combatMonsterHrid);
+          } else {
+            break outer;
+          }
+          break;
+        }
+      }
+    }
+    encountersKilled++;
+    return encounterHrids;
+  };
+  const getMultipleEncounters = (
+    kph: number
+  ): ((() => undefined) | string[])[] => {
+    const encounterList = [];
+    for (let i = 1; i < kph + 1; i++) {
+      if (i % 10 === 0 && i !== 0) {
+        encounterList.push(
+          data.actionDetails[action].monsterSpawnInfo.bossFightMonsters
+        );
+      } else encounterList.push(getRandomEncounter());
+    }
+    return encounterList;
+  };
+  const getTotalKillsPerMonster = (encounterList: any) => {
+    const count = encounterList
+      .flat()
+      .reduce((accumulator: any, value: any) => {
+        accumulator[value] = ++accumulator[value] || 1;
+
+        return accumulator;
+      }, {});
+    return count;
+  };
+  const getEncounterRate = (
+    totalKillsPerMonster: { [name: string]: number },
+    kph: number
+  ) => {
+    const planetSpawnRate = [{}];
+    planetSpawnRate.pop();
+    data.actionDetails[action].monsterSpawnInfo
+      .spawns!.concat(
+        data.actionDetails[action].monsterSpawnInfo.bossFightMonsters
+      )
+      .map((x) => {
+        const monster = data.combatMonsterDetails[x.combatMonsterHrid ?? x];
+        const keys = Object.keys(totalKillsPerMonster);
+        keys.forEach((key) => {
+          if (monster.hrid === key) {
+            planetSpawnRate.push({
+              combatMonsterHrid: monster.hrid,
+              rate: totalKillsPerMonster[key] / kph,
+            });
+          }
+        });
+      });
+    return planetSpawnRate;
+  };
+  const [enemies, setEnemies] = useState<Enemies>(
+    getEncounterRate(
+      getTotalKillsPerMonster(getMultipleEncounters(kph)),
+      kph
+    ) as Enemies
+  );
+  useEffect(() => {
+    setEnemies(
+      getEncounterRate(
+        getTotalKillsPerMonster(getMultipleEncounters(kph)),
+        kph
+      ) as Enemies
+    );
+  }, [kph]);
+
   const encounterRows = enemies.map((x) => {
     const monster = data.combatMonsterDetails[x.combatMonsterHrid];
     return (
@@ -272,7 +154,7 @@ export default function CombatTable({ action, data, kph }: Props) {
             <Icon hrid={x.combatMonsterHrid} /> {monster.name}
           </Flex>
         </td>
-        <td>{x.rate}</td>
+        <td>{getFriendlyIntString(x.rate, 2)}</td>
       </tr>
     );
   });
@@ -330,7 +212,6 @@ export default function CombatTable({ action, data, kph }: Props) {
     }, new Map<string, LootData>());
 
   const lootData = Array.from(lootMap.values());
-  console.log(fromRaw);
   const lootRows = lootData.map((x, i) => {
     return (
       <tr key={`${action}/loot/${i}/${x.itemHrid}`}>
@@ -368,18 +249,7 @@ export default function CombatTable({ action, data, kph }: Props) {
         <td>
           {getFriendlyIntString(fromRaw ? x.coinPerHour * 24 : x.coinPerHour)}
         </td>
-        <td>
-          {i === lootData.length - 1 && (
-            <Switch
-              onLabel="DAY"
-              offLabel="HOUR"
-              label="Per hour or day"
-              size="xl"
-              checked={fromRaw}
-              onChange={(event) => setFromRaw(event.currentTarget.checked)}
-            />
-          )}
-        </td>
+        <td></td>
       </tr>
     );
   });
@@ -418,7 +288,19 @@ export default function CombatTable({ action, data, kph }: Props) {
                     fromRaw ? totalCoinsPerHour * 24 : totalCoinsPerHour
                   )}
                 </td>
-                <td></td>
+                <td>
+                  {" "}
+                  <Switch
+                    onLabel="DAY"
+                    offLabel="HOUR"
+                    label="Per hour or day"
+                    size="xl"
+                    checked={fromRaw}
+                    onChange={(event) =>
+                      setFromRaw(event.currentTarget.checked)
+                    }
+                  />
+                </td>
               </tr>
             </tbody>
           </Table>

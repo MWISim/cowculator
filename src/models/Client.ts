@@ -107,21 +107,16 @@ export interface DefaultCombatTrigger {
 }
 
 export enum ComparatorHrid {
-  CombatTriggerComparatorsGreaterThanEqual =
-  "/combat_trigger_comparators/greater_than_equal",
+  CombatTriggerComparatorsGreaterThanEqual = "/combat_trigger_comparators/greater_than_equal",
   CombatTriggerComparatorsIsActive = "/combat_trigger_comparators/is_active",
-  CombatTriggerComparatorsIsInactive =
-  "/combat_trigger_comparators/is_inactive",
-  CombatTriggerComparatorsLessThanEqual =
-  "/combat_trigger_comparators/less_than_equal",
+  CombatTriggerComparatorsIsInactive = "/combat_trigger_comparators/is_inactive",
+  CombatTriggerComparatorsLessThanEqual = "/combat_trigger_comparators/less_than_equal",
 }
 
 export enum DependencyHrid {
-  CombatTriggerDependenciesAllEnemies =
-  "/combat_trigger_dependencies/all_enemies",
+  CombatTriggerDependenciesAllEnemies = "/combat_trigger_dependencies/all_enemies",
   CombatTriggerDependenciesSelf = "/combat_trigger_dependencies/self",
-  CombatTriggerDependenciesTargetedEnemy =
-  "/combat_trigger_dependencies/targeted_enemy",
+  CombatTriggerDependenciesTargetedEnemy = "/combat_trigger_dependencies/targeted_enemy",
 }
 
 export interface ActionTypeDetailMap {
@@ -209,6 +204,8 @@ export interface MonsterSpawnInfo {
   maxSpawnCount: number;
   maxTotalStrength: number;
   spawns: Spawn[] | null;
+  bossFightMonsters: [];
+  battlesPerBoss: number;
 }
 
 export interface Spawn {
@@ -393,21 +390,17 @@ export interface CombatTriggerDependencyDetailMap {
 }
 
 export interface CommunityBuffTypeDetailMap {
-  "/community_buff_types/combat_drop_quantity":
-  CommunityBuffTypesCombatDropQuantity;
+  "/community_buff_types/combat_drop_quantity": CommunityBuffTypesCombatDropQuantity;
   "/community_buff_types/enhancing_speed": CommunityBuffTypesEnhancingSpeed;
   "/community_buff_types/experience": CommunityBuffTypesExperience;
-  "/community_buff_types/gathering_quantity":
-  CommunityBuffTypesGatheringQuantity;
-  "/community_buff_types/production_efficiency":
-  CommunityBuffTypesProductionEfficiency;
+  "/community_buff_types/gathering_quantity": CommunityBuffTypesGatheringQuantity;
+  "/community_buff_types/production_efficiency": CommunityBuffTypesProductionEfficiency;
 }
 
 export interface CommunityBuffTypesCombatDropQuantity {
   hrid: string;
   name: string;
-  usableInActionTypeMap:
-  CommunityBuffTypesCombatDropQuantityUsableInActionTypeMap;
+  usableInActionTypeMap: CommunityBuffTypesCombatDropQuantityUsableInActionTypeMap;
   buff: Buff;
   description: string;
   cowbellCost: number;
@@ -445,8 +438,7 @@ export interface CommunityBuffTypesExperience {
 export interface CommunityBuffTypesGatheringQuantity {
   hrid: string;
   name: string;
-  usableInActionTypeMap:
-  CommunityBuffTypesGatheringQuantityUsableInActionTypeMap;
+  usableInActionTypeMap: CommunityBuffTypesGatheringQuantityUsableInActionTypeMap;
   buff: Buff;
   description: string;
   cowbellCost: number;
@@ -462,8 +454,7 @@ export interface CommunityBuffTypesGatheringQuantityUsableInActionTypeMap {
 export interface CommunityBuffTypesProductionEfficiency {
   hrid: string;
   name: string;
-  usableInActionTypeMap:
-  CommunityBuffTypesProductionEfficiencyUsableInActionTypeMap;
+  usableInActionTypeMap: CommunityBuffTypesProductionEfficiencyUsableInActionTypeMap;
   buff: Buff;
   description: string;
   cowbellCost: number;
