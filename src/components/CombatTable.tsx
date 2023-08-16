@@ -32,16 +32,6 @@ export default function CombatTable({ action, data, kph }: Props) {
   const [fromRaw, setFromRaw] = useState(false);
 
   const getRandomEncounter = () => {
-    let encountersKilled = 0;
-    if (
-      data.actionDetails[action].monsterSpawnInfo.bossFightMonsters &&
-      encountersKilled ==
-        data.actionDetails[action].monsterSpawnInfo.battlesPerBoss
-    ) {
-      encountersKilled = 1;
-      return data.actionDetails[action].monsterSpawnInfo.bossFightMonsters.pop;
-    }
-
     const totalWeight = data.actionDetails[
       action
     ].monsterSpawnInfo.spawns!.reduce((prev, cur) => prev + cur.rate, 0);
@@ -74,7 +64,6 @@ export default function CombatTable({ action, data, kph }: Props) {
         }
       }
     }
-    encountersKilled++;
     return encounterHrids;
   };
   const getMultipleEncounters = (
@@ -91,13 +80,11 @@ export default function CombatTable({ action, data, kph }: Props) {
     return encounterList;
   };
   const getTotalKillsPerMonster = (encounterList: any) => {
-    const count = encounterList
-      .flat()
-      .reduce((accumulator: any, value: any) => {
-        accumulator[value] = ++accumulator[value] || 1;
+    const count = encounterList.flat().reduce((acc: any, value: any) => {
+      acc[value] = ++acc[value] || 1;
 
-        return accumulator;
-      }, {});
+      return acc;
+    }, {});
     return count;
   };
   const getEncounterRate = (
@@ -129,7 +116,7 @@ export default function CombatTable({ action, data, kph }: Props) {
       getTotalKillsPerMonster(getMultipleEncounters(kph)),
       kph
     ) as Enemies
-  );
+  ); // so it doesn't get new rates everytime you change day/hr
   useEffect(() => {
     setEnemies(
       getEncounterRate(
@@ -137,7 +124,7 @@ export default function CombatTable({ action, data, kph }: Props) {
         kph
       ) as Enemies
     );
-  }, [kph]);
+  }, [kph]); // only change when there's kph change
 
   const encounterRows = enemies.map((x) => {
     const monster = data.combatMonsterDetails[x.combatMonsterHrid];
