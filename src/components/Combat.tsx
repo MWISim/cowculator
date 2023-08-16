@@ -11,7 +11,7 @@ interface Props {
 export default function Combat({ data }: Props) {
   const [action, setAction] = useState<string | null>(null);
   const [kph, setKph] = useState<number>(0);
-  // console.log(data);
+
   const actions = Object.values(data.actionDetails)
     .filter((x) => x.function === ActionFunction.Combat)
     .sort((a, b) => {
