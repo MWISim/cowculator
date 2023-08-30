@@ -186,3 +186,88 @@ export const UserInfoProvider = ({ children }) => {
     </userInfoContext.Provider>
   );
 };
+
+export const resetUserData = () => {
+  const gather = {
+    level: 1,
+    toolBonus: 0,
+    gearEfficiency: 0,
+    teas: [""],
+    priceOverrides: {},
+    relevantItems: [],
+  };
+  const actionCat = {
+    fromRaw: false,
+    level: 1,
+    xp: "",
+    targetLevel: "",
+    toolBonus: 0,
+    teas: [""],
+    gearEfficiency: 0,
+    options: [],
+  };
+  return {
+    tabControl: {
+      current: "production",
+    },
+    Character: {
+      character: {},
+      relevantSkills: [],
+      toolMap: new Map(),
+    },
+    Calculator: {
+      action: null,
+      fromRaw: false,
+    },
+    ActionCalc: {
+      priceOverrides: {},
+      teas: [],
+    },
+    ItemLookup: {
+      item: null,
+      items: [],
+    },
+    Gathering: {
+      [Skill.Milking]: gather,
+      [Skill.Foraging]: gather,
+      [Skill.Woodcutting]: gather,
+    },
+    ActionCategorySelector: {
+      [Skill.Cheesesmithing]: actionCat,
+      [Skill.Crafting]: actionCat,
+      [Skill.Tailoring]: actionCat,
+      [Skill.Cooking]: actionCat,
+      [Skill.Brewing]: actionCat,
+    },
+    Materials: {
+      priceOverrides: {},
+      actions: [],
+      relevantItems: [],
+    },
+    Enhancing: {
+      item: null,
+      level: 1,
+      toolBonus: 0,
+      gearSpeed: 0,
+      teas: [],
+      target: 1,
+      availableTeas: [],
+      items: [],
+      itemOptions: [],
+    },
+    EnhancingCalc: {
+      protCostOverride: "",
+      priceOverrides: {},
+    },
+    Combat: {
+      action: null,
+      kph: 0,
+    },
+    CombatTable: {
+      priceOverrides: {},
+    },
+    Market: {
+      search: "",
+    },
+  } as unknown as UserT;
+};
