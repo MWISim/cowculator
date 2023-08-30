@@ -8,7 +8,7 @@ import {
 } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
 import { ActionType, DropTable } from "../models/Client";
-import { useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import Icon from "./Icon";
 import { getFriendlyIntString } from "../helpers/Formatting";
 import {
@@ -16,6 +16,7 @@ import {
   getActionSeconds,
   getTeaBonuses,
 } from "../helpers/CommonFunctions";
+import { userInfoContext } from "../helpers/StoredUserData";
 
 interface Props {
   type: ActionType;
@@ -24,13 +25,18 @@ interface Props {
 }
 
 export default function Gathering({ type, data, skill }: Props) {
-  const [level, setLevel] = useState<number>(1);
-  const [toolBonus, setToolBonus] = useState<number | "">(0);
-  const [gearEfficiency, setGearEfficiency] = useState<number | "">(0)
-  const [teas, setTeas] = useState([""]);
-  const [priceOverrides, setPriceOverrides] = useState<{
-    [key: string]: number | "";
-  }>({});
+  const { userInfo } = useContext(userInfoContext);
+  const [level, setLevel] = useState(userInfo.current.Gathering[skill].level);
+  const [toolBonus, setToolBonus] = useState(
+    userInfo.current.Gathering[skill].toolBonus
+  );
+  const [gearEfficiency, setGearEfficiency] = useState(
+    userInfo.current.Gathering[skill].gearEfficiency
+  );
+  const [teas, setTeas] = useState(userInfo.current.Gathering[skill].teas);
+  const [priceOverrides, setPriceOverrides] = useState(
+    userInfo.current.Gathering[skill].priceOverrides
+  );
 
   const {
     levelTeaBonus,
@@ -119,17 +125,41 @@ export default function Gathering({ type, data, skill }: Props) {
   };
 
   const relevantItems = useMemo(
-    () => [
-      ...new Set(
-        actions
-          .flatMap((x) => {
-            return x.dropTable ?? [];
-          })
-          .map((x) => data.itemDetails[x.itemHrid])
-      ),
-    ],
+    () =>
+      userInfo.current.Gathering[skill].relevantItems.length > 0
+        ? userInfo.current.Gathering[skill].relevantItems
+        : [
+            ...new Set(
+              actions
+                .flatMap((x) => {
+                  return x.dropTable ?? [];
+                })
+                .map((x) => data.itemDetails[x.itemHrid])
+            ),
+          ],
     [actions, data.itemDetails]
   );
+
+  useEffect(() => {
+    userInfo.current = {
+      ...userInfo.current,
+      Gathering: {
+        ...userInfo.current.Gathering,
+        [skill]: {
+          level,
+          toolBonus,
+          gearEfficiency,
+          teas,
+          priceOverrides,
+          relevantItems,
+        },
+      },
+    };
+  }, [
+    userInfo.current.tabControl.current === "milking",
+    userInfo.current.tabControl.current === "foraging",
+    userInfo.current.tabControl.current === "woodcutting",
+  ]);
 
   const marketRows = relevantItems.map((x) => {
     return (
@@ -169,7 +199,10 @@ export default function Gathering({ type, data, skill }: Props) {
     const seconds = getActionSeconds(x.baseTimeCost, toolBonus);
     const exp = x.experienceGain.value * wisdomTeaBonus;
     const levelReq = x.levelRequirement.level;
-    const efficiency = Math.max(1, (100 + (effectiveLevel || 1) - levelReq) / 100) + efficiencyTeaBonus + ((gearEfficiency || 0) / 100);
+    const efficiency =
+      Math.max(1, (100 + (effectiveLevel || 1) - levelReq) / 100) +
+      efficiencyTeaBonus +
+      (gearEfficiency || 0) / 100;
 
     const lootPerAction = getItemsPerAction(x.dropTable).concat(
       getRareItemsPerAction(x.rareDropTable)

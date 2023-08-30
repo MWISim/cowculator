@@ -9,8 +9,9 @@ import {
 } from "@mantine/core";
 import Materials from "./Materials";
 import { ApiData } from "../services/ApiService";
-import { useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { Skill, getTeaBonuses } from "../helpers/CommonFunctions";
+import { userInfoContext } from "../helpers/StoredUserData";
 
 interface Props {
   skill: Skill;
@@ -18,13 +19,28 @@ interface Props {
 }
 
 export default function ActionCategorySelector({ skill, data }: Props) {
-  const [fromRaw, setFromRaw] = useState(false);
-  const [level, setLevel] = useState<number | "">(1);
-  const [xp, setXp] = useState<number | "">("");
-  const [targetLevel, setTargetLevel] = useState<number | "">("");
-  const [toolBonus, setToolBonus] = useState<number | "">(0);
-  const [teas, setTeas] = useState([""]);
-  const [gearEfficiency, setGearEfficiency] = useState<number | "">(0)
+  const { userInfo } = useContext(userInfoContext);
+  const [fromRaw, setFromRaw] = useState(
+    userInfo.current.ActionCategorySelector[skill].fromRaw
+  );
+  const [level, setLevel] = useState(
+    userInfo.current.ActionCategorySelector[skill].level
+  );
+  const [xp, setXp] = useState(
+    userInfo.current.ActionCategorySelector[skill].xp
+  );
+  const [targetLevel, setTargetLevel] = useState(
+    userInfo.current.ActionCategorySelector[skill].targetLevel
+  );
+  const [toolBonus, setToolBonus] = useState(
+    userInfo.current.ActionCategorySelector[skill].toolBonus
+  );
+  const [teas, setTeas] = useState(
+    userInfo.current.ActionCategorySelector[skill].teas
+  );
+  const [gearEfficiency, setGearEfficiency] = useState(
+    userInfo.current.ActionCategorySelector[skill].gearEfficiency
+  );
   const { teaError, levelTeaBonus } = getTeaBonuses(teas, skill);
 
   const availableTeas = Object.values(data.itemDetails)
@@ -39,19 +55,46 @@ export default function ActionCategorySelector({ skill, data }: Props) {
 
   const options = useMemo(
     () =>
-      Object.values(data.actionCategoryDetails)
-        .filter((x) => x.hrid.startsWith(`/action_categories/${skill}`))
-        .sort((a, b) => {
-          if (a.sortIndex < b.sortIndex) return -1;
-          if (a.sortIndex > b.sortIndex) return 1;
-          return 0;
-        })
-        .map((x) => ({
-          value: x.hrid,
-          label: x.name,
-        })),
+      userInfo.current.ActionCategorySelector[skill].options.length > 0
+        ? userInfo.current.ActionCategorySelector[skill].options
+        : Object.values(data.actionCategoryDetails)
+            .filter((x) => x.hrid.startsWith(`/action_categories/${skill}`))
+            .sort((a, b) => {
+              if (a.sortIndex < b.sortIndex) return -1;
+              if (a.sortIndex > b.sortIndex) return 1;
+              return 0;
+            })
+            .map((x) => ({
+              value: x.hrid,
+              label: x.name,
+            })),
     [skill, data.actionCategoryDetails]
   );
+
+  useEffect(() => {
+    userInfo.current = {
+      ...userInfo.current,
+      ActionCategorySelector: {
+        ...userInfo.current.ActionCategorySelector,
+        [skill]: {
+          fromRaw,
+          level,
+          xp,
+          targetLevel,
+          toolBonus,
+          teas,
+          gearEfficiency,
+          options,
+        },
+      },
+    };
+  }, [
+    userInfo.current.tabControl.current === "cheesesmithing",
+    userInfo.current.tabControl.current === "crafting",
+    userInfo.current.tabControl.current === "tailoring",
+    userInfo.current.tabControl.current === "cooking",
+    userInfo.current.tabControl.current === "brewing",
+  ]);
 
   const [category, setCategory] = useState(options[0].value);
 

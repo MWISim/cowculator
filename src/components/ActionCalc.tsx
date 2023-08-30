@@ -7,10 +7,11 @@ import {
   Grid,
 } from "@mantine/core";
 import { ActionDetailMap, Cost } from "../models/Client";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useState, useContext } from "react";
 import { ApiData } from "../services/ApiService";
 import { getFriendlyIntString } from "../helpers/Formatting";
 import Icon from "./Icon";
+import { userInfoContext } from "../helpers/StoredUserData";
 
 interface Props {
   action: ActionDetailMap;
@@ -19,16 +20,24 @@ interface Props {
 }
 
 export default function ActionCalc({ action, fromRaw = false, data }: Props) {
-  const [priceOverrides, setPriceOverrides] = useState<{
-    [key: string]: number | "";
-  }>({});
-  const [teas, setTeas] = useState<string[]>([]);
+  const { userInfo } = useContext(userInfoContext);
+  const [priceOverrides, setPriceOverrides] = useState(
+    userInfo.current.ActionCalc.priceOverrides
+  );
+  const [teas, setTeas] = useState(userInfo.current.ActionCalc.teas);
   const availableTeas = Object.values(data.itemDetails)
     .filter((x) => x.consumableDetail.usableInActionTypeMap?.[action.type])
     .map((x) => ({
       label: x.name,
       value: x.hrid,
     }));
+
+  useEffect(() => {
+    userInfo.current = {
+      ...userInfo.current,
+      ActionCalc: { priceOverrides, teas },
+    };
+  }, [userInfo.current.tabControl.current === "production"]);
 
   useEffect(() => {
     setTeas([]);

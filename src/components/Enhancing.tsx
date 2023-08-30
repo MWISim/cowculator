@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import {
   Flex,
   Group,
@@ -12,31 +12,39 @@ import { ApiData } from "../services/ApiService";
 import EnhancingCalc from "./EnhancingCalc";
 import { ActionType } from "../models/Client";
 import { Skill, getTeaBonuses } from "../helpers/CommonFunctions";
+import { userInfoContext } from "../helpers/StoredUserData";
 
 interface Props {
   data: ApiData;
 }
 
 export default function Enhancing({ data }: Props) {
+  const { userInfo } = useContext(userInfoContext);
   const skill = Skill.Enhancing;
-  const [item, setItem] = useState<string | null>(null);
-  const [level, setLevel] = useState<number | "">(1);
-  const [toolBonus, setToolBonus] = useState<number | "">(0);
-  const [gearSpeed, setGearSpeed] = useState<number | "">(0);
-  const [teas, setTeas] = useState<string[]>([]);
-  const [target, setTarget] = useState<number>(1);
+  const [item, setItem] = useState(userInfo.current.Enhancing.item);
+  const [level, setLevel] = useState(userInfo.current.Enhancing.level);
+  const [toolBonus, setToolBonus] = useState(
+    userInfo.current.Enhancing.toolBonus
+  );
+  const [gearSpeed, setGearSpeed] = useState(
+    userInfo.current.Enhancing.gearSpeed
+  );
+  const [teas, setTeas] = useState(userInfo.current.Enhancing.teas);
+  const [target, setTarget] = useState(userInfo.current.Enhancing.target);
 
   const availableTeas = useMemo(
     () =>
-      Object.values(data.itemDetails)
-        .filter(
-          (x) =>
-            x.consumableDetail.usableInActionTypeMap?.[ActionType.Enhancing]
-        )
-        .map((x) => ({
-          label: x.name,
-          value: x.hrid,
-        })),
+      userInfo.current.Enhancing.availableTeas.length > 0
+        ? userInfo.current.Enhancing.availableTeas
+        : Object.values(data.itemDetails)
+            .filter(
+              (x) =>
+                x.consumableDetail.usableInActionTypeMap?.[ActionType.Enhancing]
+            )
+            .map((x) => ({
+              label: x.name,
+              value: x.hrid,
+            })),
     [data.itemDetails]
   );
 
@@ -44,24 +52,45 @@ export default function Enhancing({ data }: Props) {
 
   const items = useMemo(
     () =>
-      Object.values(data.itemDetails)
-        .filter((x) => x.enhancementCosts)
-        .sort((a, b) => {
-          if (a.sortIndex < b.sortIndex) return -1;
-          if (a.sortIndex > b.sortIndex) return 1;
-          return 0;
-        }),
+      userInfo.current.Enhancing.items.length > 0
+        ? userInfo.current.Enhancing.items
+        : Object.values(data.itemDetails)
+            .filter((x) => x.enhancementCosts)
+            .sort((a, b) => {
+              if (a.sortIndex < b.sortIndex) return -1;
+              if (a.sortIndex > b.sortIndex) return 1;
+              return 0;
+            }),
     [data.itemDetails]
   );
 
   const itemOptions = useMemo(
     () =>
-      items.map((x) => ({
-        value: x.hrid,
-        label: x.name,
-      })),
+      userInfo.current.Enhancing.itemOptions.length > 0
+        ? userInfo.current.Enhancing.itemOptions
+        : items.map((x) => ({
+            value: x.hrid,
+            label: x.name,
+          })),
     [items]
   );
+
+  useEffect(() => {
+    userInfo.current = {
+      ...userInfo.current,
+      Enhancing: {
+        item,
+        level,
+        toolBonus,
+        gearSpeed,
+        teas,
+        target,
+        availableTeas,
+        items,
+        itemOptions,
+      },
+    };
+  }, [userInfo.current.tabControl.current === "enhancing"]);
 
   return (
     <Flex

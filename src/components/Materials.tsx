@@ -1,10 +1,15 @@
 import { Flex, NumberInput, Table } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
 import { Cost } from "../models/Client";
-import { useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import Icon from "./Icon";
 import { getFriendlyIntString } from "../helpers/Formatting";
-import { Skill, getActionSeconds, getTeaBonuses } from "../helpers/CommonFunctions";
+import {
+  Skill,
+  getActionSeconds,
+  getTeaBonuses,
+} from "../helpers/CommonFunctions";
+import { userInfoContext } from "../helpers/StoredUserData";
 
 interface Props {
   actionCategory: string;
@@ -31,9 +36,10 @@ export default function Materials({
   teas,
   skill,
 }: Props) {
-  const [priceOverrides, setPriceOverrides] = useState<{
-    [key: string]: number | "";
-  }>({});
+  const { userInfo } = useContext(userInfoContext);
+  const [priceOverrides, setPriceOverrides] = useState(
+    userInfo.current.Materials.priceOverrides
+  );
 
   const {
     wisdomTeaBonus,
@@ -44,30 +50,48 @@ export default function Materials({
 
   const actions = useMemo(
     () =>
-      Object.values(data.actionDetails)
-        .filter((x) => x.category === actionCategory)
-        .sort((a, b) => {
-          if (a.sortIndex > b.sortIndex) return -1;
-          if (a.sortIndex < b.sortIndex) return 1;
-          return 0;
-        }),
+      userInfo.current.Materials.actions.length > 0
+        ? userInfo.current.Materials.actions
+        : Object.values(data.actionDetails)
+            .filter((x) => x.category === actionCategory)
+            .sort((a, b) => {
+              if (a.sortIndex > b.sortIndex) return -1;
+              if (a.sortIndex < b.sortIndex) return 1;
+              return 0;
+            }),
     [actionCategory, data.actionDetails]
   );
 
   const relevantItems = useMemo(
-    () => [
-      ...new Set(
-        actions
-          .flatMap((x) => {
-            const input = x.inputItems ?? [];
-            const output = x.outputItems ?? [];
-            return [input, output].flat();
-          })
-          .map((x) => data.itemDetails[x.itemHrid])
-      ),
-    ],
+    () =>
+      userInfo.current.Materials.relevantItems.length > 0
+        ? userInfo.current.Materials.relevantItems
+        : [
+            ...new Set(
+              actions
+                .flatMap((x) => {
+                  const input = x.inputItems ?? [];
+                  const output = x.outputItems ?? [];
+                  return [input, output].flat();
+                })
+                .map((x) => data.itemDetails[x.itemHrid])
+            ),
+          ],
     [actions, data.itemDetails]
   );
+
+  useEffect(() => {
+    userInfo.current = {
+      ...userInfo.current,
+      Materials: { priceOverrides, actions, relevantItems },
+    };
+  }, [
+    userInfo.current.tabControl.current === "cheesesmithing",
+    userInfo.current.tabControl.current === "crafting",
+    userInfo.current.tabControl.current === "tailoring",
+    userInfo.current.tabControl.current === "cooking",
+    userInfo.current.tabControl.current === "brewing",
+  ]);
 
   const getApproxValue = (hrid: string): number => {
     if (hrid === "/items/coin") return 1;
@@ -103,7 +127,10 @@ export default function Materials({
     let seconds = getActionSeconds(x.baseTimeCost, toolBonus);
     let exp = x.experienceGain.value * wisdomTeaBonus;
     const levelReq = x.levelRequirement.level;
-    const efficiency = Math.max(1, (100 + (effectiveLevel || 1) - levelReq) / 100) + efficiencyTeaBonus + ((gearEfficiency || 0) / 100);
+    const efficiency =
+      Math.max(1, (100 + (effectiveLevel || 1) - levelReq) / 100) +
+      efficiencyTeaBonus +
+      (gearEfficiency || 0) / 100;
 
     let actionsToTarget = 0;
 

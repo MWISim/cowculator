@@ -6,14 +6,16 @@ import {
   Footer,
   Loader,
   Tabs,
+  TabsValue,
 } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import getApiData from "./services/ApiService";
 import { ActionType } from "./models/Client";
 import Market from "./components/Market";
 import ActionCategorySelector from "./components/ActionCategorySelector";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useContext, useEffect, useState } from "react";
 import { Skill } from "./helpers/CommonFunctions";
+import { userInfoContext } from "./helpers/StoredUserData";
 
 const ItemLookup = lazy(() => import("./components/ItemLookup"));
 const Enhancing = lazy(() => import("./components/Enhancing"));
@@ -29,7 +31,29 @@ export default function App() {
     refetchInterval: 5 * 60 * 1000,
   });
 
-  if (isLoading || !data) return <Loader />;
+  const { userInfo } = useContext(userInfoContext);
+  const [userInfoLoading, setUserInfoLoading] = useState(true);
+
+  useEffect(() => {
+    const storedData = localStorage.getItem("userInfo");
+    if (storedData) userInfo.current = JSON.parse(storedData);
+    setUserInfoLoading(false);
+  }, []);
+
+  const [tabController, setTabController] = useState<TabsValue>(
+    userInfo.current.tabControl.current
+  );
+
+  useEffect(() => {
+    if (!userInfoLoading) userInfo.current.tabControl.current = tabController;
+  }, [tabController, userInfoLoading]);
+
+  useEffect(() => {
+    if (!userInfoLoading)
+      localStorage.setItem("userInfo", JSON.stringify(userInfo.current));
+  }, [userInfo.current.tabControl.current]);
+
+  if (isLoading || !data || userInfoLoading) return <Loader />;
 
   return (
     <AppShell
@@ -71,7 +95,11 @@ export default function App() {
     >
       <Container fluid>
         <Suspense fallback={<Loader />}>
-          <Tabs variant="outline" defaultValue="production">
+          <Tabs
+            variant="outline"
+            value={tabController}
+            onTabChange={setTabController}
+          >
             <Tabs.List>
               {/* <Tabs.Tab value="character">Character</Tabs.Tab> */}
               <Tabs.Tab value="production">Production</Tabs.Tab>

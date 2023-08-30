@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { getFriendlyIntString } from "../helpers/Formatting";
 import { ItemDetail } from "../models/Client";
 import { MarketValue } from "../models/Market";
 import { ApiData } from "../services/ApiService";
 import { Flex, NumberInput, Table } from "@mantine/core";
 import Icon from "./Icon";
+import { userInfoContext } from "../helpers/StoredUserData";
 
 interface MonsterSpawnOverride {
   combatMonsterHrid: string;
@@ -213,9 +214,18 @@ interface Props {
 }
 
 export default function CombatTable({ action, data, kph }: Props) {
-  const [priceOverrides, setPriceOverrides] = useState<{
-    [key: string]: number | "";
-  }>({});
+  const { userInfo } = useContext(userInfoContext);
+  const [priceOverrides, setPriceOverrides] = useState(
+    userInfo.current.CombatTable.priceOverrides
+  );
+
+  useEffect(() => {
+    userInfo.current = {
+      ...userInfo.current,
+      CombatTable: { priceOverrides },
+    };
+  }, [userInfo.current.tabControl.current === "combat"]);
+
   const enemies =
     planetSpawnRates[action] ??
     data.actionDetails[action].monsterSpawnInfo.spawns ??

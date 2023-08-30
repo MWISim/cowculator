@@ -1,16 +1,22 @@
 import { Flex, NumberInput, Select } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
 import { ActionFunction } from "../models/Client";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import CombatTable from "./CombatTable";
+import { userInfoContext } from "../helpers/StoredUserData";
 
 interface Props {
   data: ApiData;
 }
 
 export default function Combat({ data }: Props) {
-  const [action, setAction] = useState<string | null>(null);
-  const [kph, setKph] = useState<number>(0);
+  const { userInfo } = useContext(userInfoContext);
+  const [action, setAction] = useState(userInfo.current.Combat.action);
+  const [kph, setKph] = useState(userInfo.current.Combat.kph);
+
+  useEffect(() => {
+    userInfo.current = { ...userInfo.current, Combat: { action, kph } };
+  }, [userInfo.current.tabControl.current === "combat"]);
 
   const actions = Object.values(data.actionDetails)
     .filter((x) => x.function === ActionFunction.Combat)

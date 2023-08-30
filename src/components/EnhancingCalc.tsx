@@ -2,10 +2,11 @@ import { Flex, Loader, NumberInput, Table, Title } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
 import { Cost, ItemDetail } from "../models/Client";
 import { MarketValue } from "../models/Market";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { getFriendlyIntString } from "../helpers/Formatting";
 import Icon from "./Icon";
 import { Duration } from "luxon";
+import { userInfoContext } from "../helpers/StoredUserData";
 
 interface Props {
   data: ApiData;
@@ -29,12 +30,25 @@ export default function EnhancingCalc({
   target,
   teas,
 }: Props) {
+  const { userInfo } = useContext(userInfoContext);
   const toolBonus = toolPercent * 0.01;
   const action = data.actionDetails["/actions/enhancing/enhance"];
-  const [protCostOverride, setProtCostOverride] = useState<number | "">("");
-  const [priceOverrides, setPriceOverrides] = useState<{
-    [key: string]: number | "";
-  }>({});
+  const [protCostOverride, setProtCostOverride] = useState(
+    userInfo.current.EnhancingCalc.protCostOverride
+  );
+  const [priceOverrides, setPriceOverrides] = useState(
+    userInfo.current.EnhancingCalc.priceOverrides
+  );
+
+  useEffect(() => {
+    userInfo.current = {
+      ...userInfo.current,
+      EnhancingCalc: {
+        protCostOverride,
+        priceOverrides,
+      },
+    };
+  }, [userInfo.current.tabControl.current === "enhancing"]);
 
   const blessedTeaBonus = teas.some((x) => x === "/items/blessed_tea")
     ? 0.01

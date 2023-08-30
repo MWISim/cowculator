@@ -1,23 +1,31 @@
 import { Flex, Select, Grid, Table, Title } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useContext, useEffect } from "react";
 import Icon from "./Icon";
+import { userInfoContext } from "../helpers/StoredUserData";
 
 interface Props {
   data: ApiData;
 }
 
 export default function ItemLookup({ data }: Props) {
-  const [item, setItem] = useState<string | null>(null);
+  const { userInfo } = useContext(userInfoContext);
+  const [item, setItem] = useState(userInfo.current.ItemLookup.item);
 
   const items = useMemo(
     () =>
-      Object.values(data.itemDetails).map((x) => ({
-        value: x.hrid,
-        label: x.name,
-      })),
+      userInfo.current.ItemLookup.items.length > 0
+        ? userInfo.current.ItemLookup.items
+        : Object.values(data.itemDetails).map((x) => ({
+            value: x.hrid,
+            label: x.name,
+          })),
     [data.itemDetails]
   );
+
+  useEffect(() => {
+    userInfo.current = { ...userInfo.current, ItemLookup: { item, items } };
+  }, [userInfo.current.tabControl.current === "itemLookup"]);
 
   const choice = data.itemDetails[item || ""] || {};
 

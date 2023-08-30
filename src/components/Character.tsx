@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useContext, useEffect } from "react";
 import { ApiData } from "../services/ApiService";
 import { Flex, NumberInput, Select, Table } from "@mantine/core";
 import { CategoryHrid } from "../models/Client";
+import { userInfoContext } from "../helpers/StoredUserData";
 
 export type CharacterType = {
   [key: string]: {
@@ -27,43 +28,57 @@ const excludedSkills = [
 ];
 
 export default function Character({ data }: Props) {
-  const [character, setCharacter] = useState<CharacterType>({});
+  const { userInfo } = useContext(userInfoContext);
+  const [character, setCharacter] = useState<CharacterType>(
+    userInfo.current.Character.character
+  );
 
   const relevantSkills = useMemo(
     () =>
-      Object.values(data.skillDetails)
-        .filter((x) => !excludedSkills.includes(x.hrid))
-        .sort((a, b) => {
-          if (a.sortIndex < b.sortIndex) return -1;
-          if (a.sortIndex > b.sortIndex) return 1;
-          return 0;
-        }),
+      userInfo.current.Character.relevantSkills.length > 0
+        ? userInfo.current.Character.relevantSkills
+        : Object.values(data.skillDetails)
+            .filter((x) => !excludedSkills.includes(x.hrid))
+            .sort((a, b) => {
+              if (a.sortIndex < b.sortIndex) return -1;
+              if (a.sortIndex > b.sortIndex) return 1;
+              return 0;
+            }),
     [data.skillDetails]
   );
 
   const toolMap = useMemo(
     () =>
-      new Map(
-        relevantSkills.map((x) => {
-          const tools = Object.values(data.itemDetails)
-            .filter(
-              (y) =>
-                y.categoryHrid === CategoryHrid.ItemCategoriesEquipment &&
-                y.equipmentDetail.levelRequirements?.some(
-                  (z) => z.skillHrid === x.hrid
+      userInfo.current.Character.toolMap.size > 0
+        ? userInfo.current.Character.toolMap
+        : new Map(
+            relevantSkills.map((x) => {
+              const tools = Object.values(data.itemDetails)
+                .filter(
+                  (y) =>
+                    y.categoryHrid === CategoryHrid.ItemCategoriesEquipment &&
+                    y.equipmentDetail.levelRequirements?.some(
+                      (z) => z.skillHrid === x.hrid
+                    )
                 )
-            )
-            .sort((a, b) => {
-              if (a.sortIndex < b.sortIndex) return -1;
-              if (a.sortIndex > b.sortIndex) return 1;
-              return 0;
-            });
+                .sort((a, b) => {
+                  if (a.sortIndex < b.sortIndex) return -1;
+                  if (a.sortIndex > b.sortIndex) return 1;
+                  return 0;
+                });
 
-          return [x.hrid, tools];
-        })
-      ),
+              return [x.hrid, tools];
+            })
+          ),
     [data.itemDetails, relevantSkills]
   );
+
+  useEffect(() => {
+    userInfo.current = {
+      ...userInfo.current,
+      Character: { character, relevantSkills, toolMap },
+    };
+  }, [userInfo.current.tabControl.current === "character"]);
 
   const rows = relevantSkills.map((x) => {
     const tools = toolMap.get(x.hrid)?.map((x) => ({
