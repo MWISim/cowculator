@@ -1,4 +1,4 @@
-import { useMemo, useContext, useEffect } from "react";
+import { useMemo, useContext } from "react";
 import { ApiData } from "../services/ApiService";
 import { Flex, NumberInput, Select, Table } from "@mantine/core";
 import { CategoryHrid } from "../models/Client";
@@ -30,20 +30,20 @@ const excludedSkills = [
 export default function Character({ data }: Props) {
   const { userInfo } = useContext(userInfoContext);
 
-  const { character, relevantSkills } = userInfo.current.Character;
+  const { character } = userInfo.current.Character;
 
-  useEffect(() => {
-    userInfo.current.changeCharacter((curr) => ({
-      ...curr,
-      relevantSkills: Object.values(data.skillDetails)
+  const relevantSkills = useMemo(
+    () =>
+      Object.values(data.skillDetails)
         .filter((x) => !excludedSkills.includes(x.hrid))
         .sort((a, b) => {
           if (a.sortIndex < b.sortIndex) return -1;
           if (a.sortIndex > b.sortIndex) return 1;
           return 0;
         }),
-    }));
-  }, [data.skillDetails]);
+
+    [data.skillDetails]
+  );
 
   const toolMap = useMemo(
     () =>

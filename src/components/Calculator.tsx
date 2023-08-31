@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "react";
+import { useContext } from "react";
 import { Flex, Select, Switch } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
 import ActionCalc from "./ActionCalc";

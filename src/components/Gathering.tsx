@@ -8,7 +8,7 @@ import {
 } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
 import { ActionType, DropTable } from "../models/Client";
-import { useContext, useEffect } from "react";
+import { useContext, useMemo } from "react";
 import Icon from "./Icon";
 import { getFriendlyIntString } from "../helpers/Formatting";
 import { getActionSeconds, getTeaBonuses } from "../helpers/CommonFunctions";
@@ -23,14 +23,8 @@ interface Props {
 export default function Gathering({ type, data, skill }: Props) {
   const { userInfo } = useContext(userInfoContext);
 
-  const {
-    level,
-    toolBonus,
-    gearEfficiency,
-    teas,
-    priceOverrides,
-    relevantItems,
-  } = userInfo.current.Gathering[skill];
+  const { level, toolBonus, gearEfficiency, teas, priceOverrides } =
+    userInfo.current.Gathering[skill];
 
   const {
     levelTeaBonus,
@@ -118,20 +112,18 @@ export default function Gathering({ type, data, skill }: Props) {
     return price;
   };
 
-  useEffect(() => {
-    userInfo.current.changeGathering(skill, (curr) => ({
-      ...curr,
-      relevantItems: [
-        ...new Set(
-          actions
-            .flatMap((x) => {
-              return x.dropTable ?? [];
-            })
-            .map((x) => data.itemDetails[x.itemHrid])
-        ),
-      ],
-    }));
-  }, [actions, data.itemDetails]);
+  const relevantItems = useMemo(
+    () => [
+      ...new Set(
+        actions
+          .flatMap((x) => {
+            return x.dropTable ?? [];
+          })
+          .map((x) => data.itemDetails[x.itemHrid])
+      ),
+    ],
+    [actions, data.itemDetails]
+  );
 
   const marketRows = relevantItems.map((x) => {
     return (

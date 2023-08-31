@@ -1,6 +1,6 @@
 import { Flex, Select, Grid, Table, Title } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
-import { useContext, useEffect } from "react";
+import { useContext, useMemo } from "react";
 import Icon from "./Icon";
 import { userInfoContext } from "../helpers/StoredUserData";
 
@@ -11,17 +11,16 @@ interface Props {
 export default function ItemLookup({ data }: Props) {
   const { userInfo } = useContext(userInfoContext);
 
-  const { item, items } = userInfo.current.ItemLookup;
+  const { item } = userInfo.current.ItemLookup;
 
-  useEffect(() => {
-    userInfo.current.changeItemLookup((curr) => ({
-      ...curr,
-      items: Object.values(data.itemDetails).map((x) => ({
+  const items = useMemo(
+    () =>
+      Object.values(data.itemDetails).map((x) => ({
         value: x.hrid,
         label: x.name,
       })),
-    }));
-  }, [data.itemDetails]);
+    [data.itemDetails]
+  );
 
   const choice = data.itemDetails[item || ""] || {};
 

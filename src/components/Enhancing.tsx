@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext, useMemo } from "react";
 import {
   Flex,
   Group,
@@ -21,23 +21,13 @@ interface Props {
 export default function Enhancing({ data }: Props) {
   const { userInfo } = useContext(userInfoContext);
 
-  const {
-    item,
-    level,
-    toolBonus,
-    gearSpeed,
-    teas,
-    target,
-    availableTeas,
-    items,
-    itemOptions,
-  } = userInfo.current.Enhancing;
+  const { item, level, toolBonus, gearSpeed, teas, target } =
+    userInfo.current.Enhancing;
   const skill = Skill.Enhancing;
 
-  useEffect(() => {
-    userInfo.current.changeEnhancing((curr) => ({
-      ...curr,
-      availableTeas: Object.values(data.itemDetails)
+  const availableTeas = useMemo(
+    () =>
+      Object.values(data.itemDetails)
         .filter(
           (x) =>
             x.consumableDetail.usableInActionTypeMap?.[ActionType.Enhancing]
@@ -46,27 +36,31 @@ export default function Enhancing({ data }: Props) {
           label: x.name,
           value: x.hrid,
         })),
-      items: Object.values(data.itemDetails)
+    [data.itemDetails]
+  );
+
+  const { teaError, levelTeaBonus } = getTeaBonuses(teas, skill);
+
+  const items = useMemo(
+    () =>
+      Object.values(data.itemDetails)
         .filter((x) => x.enhancementCosts)
         .sort((a, b) => {
           if (a.sortIndex < b.sortIndex) return -1;
           if (a.sortIndex > b.sortIndex) return 1;
           return 0;
         }),
-    }));
-  }, [data.itemDetails]);
+    [data.itemDetails]
+  );
 
-  const { teaError, levelTeaBonus } = getTeaBonuses(teas, skill);
-
-  useEffect(() => {
-    userInfo.current.changeEnhancing((curr) => ({
-      ...curr,
-      itemOptions: items.map((x) => ({
+  const itemOptions = useMemo(
+    () =>
+      items.map((x) => ({
         value: x.hrid,
         label: x.name,
       })),
-    }));
-  }, [items]);
+    [items]
+  );
 
   return (
     <Flex

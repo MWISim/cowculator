@@ -1,6 +1,4 @@
 import { createContext, useRef, useState } from "react";
-import { ActionCategoryDetailMap, ItemDetail } from "../models/Client";
-import { MarketValue } from "../models/Market";
 import { Skill } from "./CommonFunctions";
 import { TabsValue } from "@mantine/core";
 
@@ -10,7 +8,6 @@ type gatherT = {
   gearEfficiency: number | "";
   teas: string[];
   priceOverrides: { [key: string]: number | "" };
-  relevantItems: (ItemDetail & MarketValue)[];
 };
 
 type actionT = {
@@ -37,7 +34,6 @@ type UserT = {
         toolLevel: number;
       };
     };
-    relevantSkills: ActionCategoryDetailMap[];
   };
   Calculator: {
     action: string | null;
@@ -49,7 +45,6 @@ type UserT = {
   };
   ItemLookup: {
     item: string | null;
-    items: { value: string; label: string }[];
   };
   Gathering: {
     [Skill.Milking]: gatherT;
@@ -73,9 +68,6 @@ type UserT = {
     gearSpeed: number | "";
     teas: string[];
     target: number;
-    availableTeas: { value: string; label: string }[];
-    items: (ItemDetail & MarketValue)[];
-    itemOptions: { value: string; label: string }[];
   };
   EnhancingCalc: {
     protCostOverride: number | "";
@@ -115,7 +107,6 @@ export class UserDetails {
       gearEfficiency: 0,
       teas: [""],
       priceOverrides: {},
-      relevantItems: [],
     };
     const actionCat: actionT = {
       fromRaw: false,
@@ -127,10 +118,10 @@ export class UserDetails {
       gearEfficiency: 0,
     };
     this.tabControl = { current: "production", previous: "" };
-    this.Character = { character: {}, relevantSkills: [] };
+    this.Character = { character: {} };
     this.Calculator = { action: null, fromRaw: false };
     this.ActionCalc = { priceOverrides: {}, teas: [] };
-    this.ItemLookup = { item: null, items: [] };
+    this.ItemLookup = { item: null };
     this.Gathering = {
       [Skill.Milking]: { ...gather },
       [Skill.Foraging]: { ...gather },
@@ -151,9 +142,6 @@ export class UserDetails {
       gearSpeed: 0,
       teas: [],
       target: 1,
-      availableTeas: [],
-      items: [],
-      itemOptions: [],
     };
     this.EnhancingCalc = { protCostOverride: "", priceOverrides: {} };
     this.Combat = { action: null, kph: 0 };
@@ -339,7 +327,6 @@ export class UserDetails {
       if (parsedData.Character)
         user.Character = {
           character: parsedData.Character.character || {},
-          relevantSkills: parsedData.Character.relevantSkills || [],
         };
       if (parsedData.Calculator)
         user.Calculator = {
@@ -354,7 +341,6 @@ export class UserDetails {
       if (parsedData.ItemLookup)
         user.ItemLookup = {
           item: parsedData.ItemLookup.item || null,
-          items: parsedData.ItemLookup.items || [],
         };
       if (parsedData.Gathering) {
         user.Gathering = {
@@ -366,7 +352,6 @@ export class UserDetails {
               gearEfficiency: value.gearEfficiency || 0,
               teas: value.teas || [""],
               priceOverrides: value.priceOverrides || {},
-              relevantItems: value.relevantItems || [],
             };
             return acc;
           }, {} as UserT["Gathering"]),
@@ -404,9 +389,6 @@ export class UserDetails {
           gearSpeed: parsedData.Enhancing.gearSpeed || 0,
           teas: parsedData.Enhancing.teas || [],
           target: parsedData.Enhancing.target || 1,
-          availableTeas: parsedData.Enhancing.availableTeas || [],
-          items: parsedData.Enhancing.items || [],
-          itemOptions: parsedData.Enhancing.itemOptions || [],
         };
       if (parsedData.EnhancingCalc)
         user.EnhancingCalc = {
