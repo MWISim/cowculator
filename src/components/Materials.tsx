@@ -4,7 +4,12 @@ import { Cost } from "../models/Client";
 import { useMemo, useState } from "react";
 import Icon from "./Icon";
 import { getFriendlyIntString } from "../helpers/Formatting";
-import { Skill, getActionSeconds, getTeaBonuses } from "../helpers/CommonFunctions";
+import {
+  Skill,
+  getActionSeconds,
+  getTeaBonuses,
+  getApproxValue,
+} from "../helpers/CommonFunctions";
 
 interface Props {
   actionCategory: string;
@@ -69,31 +74,13 @@ export default function Materials({
     [actions, data.itemDetails]
   );
 
-  const getApproxValue = (hrid: string): number => {
-    if (hrid === "/items/coin") return 1;
-
-    if (priceOverrides[hrid]) return +priceOverrides[hrid];
-
-    const item = data.itemDetails[hrid];
-
-    if (item.ask === -1 && item.bid === -1) {
-      return item.sellPrice;
-    } else if (item.ask === -1) {
-      return item.bid;
-    } else if (item.bid === -1) {
-      return item.ask;
-    } else {
-      return +((item.ask + item.bid) / 2).toFixed(0);
-    }
-  };
-
   const getAveragePrice = (items: Cost[] | null): number => {
     let price = 0;
 
     if (!items) return price;
 
     price = items
-      .map((y) => y.count * getApproxValue(y.itemHrid))
+      .map((y) => y.count * getApproxValue(y.itemHrid, priceOverrides, data))
       .reduce((acc, val) => acc + val);
 
     return +price.toFixed(2);
@@ -210,7 +197,7 @@ export default function Materials({
             <NumberInput
               hideControls
               value={priceOverrides[x.hrid]}
-              placeholder={`${getApproxValue(x.hrid)}`}
+              placeholder={`${getApproxValue(x.hrid, priceOverrides, data)}`}
               onChange={(y) =>
                 setPriceOverrides({
                   ...priceOverrides,

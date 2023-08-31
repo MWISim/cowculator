@@ -10,14 +10,15 @@ import {
 import Materials from "./Materials";
 import { ApiData } from "../services/ApiService";
 import { useMemo, useState } from "react";
-import { Skill, getTeaBonuses } from "../helpers/CommonFunctions";
+import {Skill, getTeaBonuses, getAvailableTeas} from "../helpers/CommonFunctions";
 
 interface Props {
   skill: Skill;
   data: ApiData;
+  showFromRaw?: boolean;
 }
 
-export default function ActionCategorySelector({ skill, data }: Props) {
+export default function ActionCategorySelector({ skill, data , showFromRaw = true}: Props) {
   const [fromRaw, setFromRaw] = useState(false);
   const [level, setLevel] = useState<number | "">(1);
   const [xp, setXp] = useState<number | "">("");
@@ -27,15 +28,7 @@ export default function ActionCategorySelector({ skill, data }: Props) {
   const [gearEfficiency, setGearEfficiency] = useState<number | "">(0)
   const { teaError, levelTeaBonus } = getTeaBonuses(teas, skill);
 
-  const availableTeas = Object.values(data.itemDetails)
-    .filter(
-      (x) =>
-        x.consumableDetail.usableInActionTypeMap?.[`/action_types/${skill}`]
-    )
-    .map((x) => ({
-      label: x.name,
-      value: x.hrid,
-    }));
+  const availableTeas = getAvailableTeas(data, `/action_types/${skill}`);
 
   const options = useMemo(
     () =>
@@ -73,19 +66,20 @@ export default function ActionCategorySelector({ skill, data }: Props) {
           value={category}
           onChange={(event) => setCategory(event.currentTarget.value)}
         />
-        <Switch
+        {showFromRaw && (<Switch
           onLabel="CRAFT UPGRADE ITEM"
           offLabel="BUY UPGRADE ITEM"
           size="xl"
           checked={fromRaw}
           onChange={(event) => setFromRaw(event.currentTarget.checked)}
-        />
+        />)}
         <NumberInput
           value={level}
           onChange={setLevel}
           label="Level"
           withAsterisk
           hideControls
+          className="small"
           rightSection={
             levelTeaBonus && (
               <>
@@ -100,6 +94,7 @@ export default function ActionCategorySelector({ skill, data }: Props) {
           label="Tool Bonus"
           withAsterisk
           hideControls
+          className="medium"
           precision={2}
           formatter={(value) => `${value}%`}
         />
@@ -109,6 +104,7 @@ export default function ActionCategorySelector({ skill, data }: Props) {
           label="Gear Efficiency"
           withAsterisk
           hideControls
+          className="medium"
           precision={2}
           formatter={(value) => `${value}%`}
         />
@@ -125,6 +121,7 @@ export default function ActionCategorySelector({ skill, data }: Props) {
           value={xp}
           onChange={setXp}
           label="Experience"
+          className="medium"
           withAsterisk
           hideControls
         />
@@ -134,6 +131,9 @@ export default function ActionCategorySelector({ skill, data }: Props) {
           label="Target Level"
           withAsterisk
           hideControls
+          className="medium"
+          min={level}
+          max={200}
         />
       </Group>
       {category && (

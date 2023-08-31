@@ -8,13 +8,15 @@ import {
 } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
 import { ActionType, DropTable } from "../models/Client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Icon from "./Icon";
 import { getFriendlyIntString } from "../helpers/Formatting";
 import {
-  Skill,
-  getActionSeconds,
-  getTeaBonuses,
+    Skill,
+    getActionSeconds,
+    getTeaBonuses,
+    getApproxValue,
+    getAvailableTeas,
 } from "../helpers/CommonFunctions";
 
 interface Props {
@@ -28,9 +30,7 @@ export default function Gathering({ type, data, skill }: Props) {
   const [toolBonus, setToolBonus] = useState<number | "">(0);
   const [gearEfficiency, setGearEfficiency] = useState<number | "">(0)
   const [teas, setTeas] = useState([""]);
-  const [priceOverrides, setPriceOverrides] = useState<{
-    [key: string]: number | "";
-  }>({});
+  const [priceOverrides, setPriceOverrides] = useState<{[key: string]: number | "";}>({});
 
   const {
     levelTeaBonus,
@@ -41,13 +41,7 @@ export default function Gathering({ type, data, skill }: Props) {
   } = getTeaBonuses(teas, skill);
 
   const effectiveLevel = level + levelTeaBonus;
-
-  const availableTeas = Object.values(data.itemDetails)
-    .filter((x) => x.consumableDetail.usableInActionTypeMap?.[type])
-    .map((x) => ({
-      label: x.name,
-      value: x.hrid,
-    }));
+  const availableTeas = getAvailableTeas(data, type);
 
   const actions = Object.values(data.actionDetails)
     .filter((x) => x.type === type)
@@ -83,24 +77,6 @@ export default function Gathering({ type, data, skill }: Props) {
     );
   };
 
-  const getApproxValue = (hrid: string): number => {
-    if (hrid === "/items/coin") return 1;
-
-    if (priceOverrides[hrid]) return +priceOverrides[hrid];
-
-    const item = data.itemDetails[hrid];
-
-    if (item.ask === -1 && item.bid === -1) {
-      return item.sellPrice;
-    } else if (item.ask === -1) {
-      return item.bid;
-    } else if (item.bid === -1) {
-      return item.ask;
-    } else {
-      return +((item.ask + item.bid) / 2).toFixed(0);
-    }
-  };
-
   const getAveragePrice = (items: DropTable[] | null): number => {
     let price = 0;
 
@@ -108,7 +84,7 @@ export default function Gathering({ type, data, skill }: Props) {
 
     price = items
       .map((y) => {
-        const averageCost = getApproxValue(y.itemHrid);
+        const averageCost = getApproxValue(y.itemHrid, priceOverrides, data);
         const averageDrop = (y.minCount + y.maxCount) / 2;
 
         return y.dropRate * averageDrop * gatheringTeaBonus * averageCost;
@@ -152,7 +128,7 @@ export default function Gathering({ type, data, skill }: Props) {
           <NumberInput
             hideControls
             value={priceOverrides[x.hrid]}
-            placeholder={`${getApproxValue(x.hrid)}`}
+            placeholder={`${getApproxValue(x.hrid, priceOverrides, data)}`}
             onChange={(y) =>
               setPriceOverrides({
                 ...priceOverrides,
@@ -189,20 +165,10 @@ export default function Gathering({ type, data, skill }: Props) {
       </Flex>
     ));
 
-    const expPerHour = ((exp / seconds) * 3600 * efficiency).toLocaleString(
-      undefined,
-      {
-        maximumFractionDigits: 0,
-      }
-    );
+    const expPerHour = getFriendlyIntString((exp / seconds) * 3600 * efficiency);
 
     const profit = getAveragePrice(x.dropTable) * 0.98;
-
-    const profitPerHour = (
-      (profit / seconds) *
-      3600 *
-      efficiency
-    ).toLocaleString(undefined, { maximumFractionDigits: 0 });
+    const profitPerHour = getFriendlyIntString((profit/seconds) * 3600 * efficiency)
 
     return (
       <tr key={type + "/" + x.hrid}>
@@ -244,6 +210,7 @@ export default function Gathering({ type, data, skill }: Props) {
           label="Level"
           withAsterisk
           hideControls
+          className="small"
           rightSection={
             levelTeaBonus && (
               <>
@@ -258,6 +225,7 @@ export default function Gathering({ type, data, skill }: Props) {
           label="Tool Bonus"
           withAsterisk
           hideControls
+          className="medium"
           precision={2}
           formatter={(value) => `${value}%`}
         />
@@ -267,6 +235,7 @@ export default function Gathering({ type, data, skill }: Props) {
           label="Gear Efficiency"
           withAsterisk
           hideControls
+          className="medium"
           precision={2}
           formatter={(value) => `${value}%`}
         />

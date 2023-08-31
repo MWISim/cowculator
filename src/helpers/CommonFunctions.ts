@@ -1,43 +1,35 @@
-export const getActionSeconds = (
-  baseTimeCost: number,
-  toolBonus: number | "",
-) => {
-  return Math.max(
-    3,
-    baseTimeCost / 1000000000 / (1 + (toolBonus || 0) / 100),
-  );
+import * as MagicNumbers from "./MagicNumbers";
+import {BLESSED_TEA_BONUS, EFFICIENCY_TEA_BONUS, GATHERING_TEA_BONUS, GOURMET_TEA_BONUS, LEVEL_TEA_BONUS} from "./MagicNumbers";
+
+/**
+ * Returns the amount of time, in seconds, that the given action will take.
+ * @param baseTimeCost The base time of the action being performed
+ * @param toolBonus The bonus of the tool the user is... using...
+ */
+export const getActionSeconds = (baseTimeCost: number, toolBonus: number | "") => {
+  return Math.max(3, baseTimeCost / 1000000000 / (1 + (toolBonus || 0) / 100));
 };
 
-export const getTeaBonuses = (
-  teas: string[],
-  skill: Skill,
-) => {
-  const artisanTeaBonus = teas.some((x) => x === "/items/artisan_tea")
-    ? 0.9
-    : 1;
-  const wisdomTeaBonus = teas.some((x) => x === "/items/wisdom_tea") ? 1.12 : 1;
-  const gourmetTeaBonus = teas.some((x) => x === "/items/gourmet_tea")
-    ? 1.12
-    : 1;
-  const blessedTeaBonus = teas.some((x) => x === "/items/blessed_tea")
-    ? 0.01
-    : 0;
-  const gatheringTeaBonus = teas.some((x) => x === "/items/gathering_tea")
-    ? 1.15
-    : 1;
-  const efficiencyTeaBonus = teas.some((x) => x === "/items/efficiency_tea")
-    ? 0.1
-    : 0;
+/**
+ * Returns a list of teas that are usable in the given action
+ * @param data The ApiData the app currently has loaded
+ * @param actionType The hrid of the action being performed
+ */
+export const getAvailableTeas = (data: object, actionType: string) => {
+  return Object.values(data.itemDetails).filter(x => x.consumableDetail.usableInActionTypeMap?.[actionType]).map(x => ({label: x.name, value: x.hrid}))
+}
 
-  const levelTeaBonus = teas.some((x) => x === `/items/super_${skill}_tea`)
-    ? 6
-    : teas.some((x) => x === `/items/${skill}_tea`)
-    ? 3
-    : 0;
-
-  const teaError = teas.filter((x) => x.includes(`${skill}_tea`)).length > 1
-    ? `Cannot use both ${skill} teas.`
-    : null;
+export const getTeaBonuses = (teas: string[], skill: Skill | null) => {
+  const artisanTeaBonus = teas.some((x) => x === "/items/artisan_tea") ? MagicNumbers.ARTISAN_TEA_BONUS : 1;
+  const wisdomTeaBonus = teas.some((x) => x === "/items/wisdom_tea") ? MagicNumbers.WISDOM_TEA_BONUS : 1;
+  const gourmetTeaBonus = teas.some((x) => x === "/items/gourmet_tea") ? MagicNumbers.GOURMET_TEA_BONUS : 1;
+  const blessedTeaBonus = teas.some((x) => x === "/items/blessed_tea") ? MagicNumbers.BLESSED_TEA_BONUS : 0;
+  const gatheringTeaBonus = teas.some((x) => x === "/items/gathering_tea") ? MagicNumbers.GATHERING_TEA_BONUS : 1;
+  const efficiencyTeaBonus = teas.some((x) => x === "/items/efficiency_tea") ? MagicNumbers.EFFICIENCY_TEA_BONUS : 0;
+  const levelTeaBonus = skill && teas.some((x) => x === `/items/super_${skill}_tea`) ? MagicNumbers.SUPER_LEVEL_TEA_BONUS : (
+    skill && teas.some((x) => x === `/items/${skill}_tea`) ? MagicNumbers.LEVEL_TEA_BONUS : 0
+  );
+  const teaError = teas.filter((x) => x.includes(`${skill}_tea`)).length > 1 ? `Cannot use both ${skill} teas.` : null;
 
   return {
     teaError,
@@ -49,6 +41,24 @@ export const getTeaBonuses = (
     gatheringTeaBonus,
     efficiencyTeaBonus,
   };
+};
+
+export const getApproxValue = (hrid: string, priceOverrides: object, data: object): number => {
+  // Coins are always 1, and if there's an override we always use that
+  if (hrid === "/items/coin") return 1;
+  if (priceOverrides[hrid]) return +priceOverrides[hrid];
+
+  const item = data.itemDetails[hrid];
+
+  // If there's no bid/ask, just use the sellPrice. This is dumb but oh well...
+  if (item.ask === -1 && item.bid === -1) return item.sellPrice;
+
+  // If no bid or ask, use the other one
+  if (item.ask === -1) return item.bid;
+  if (item.bid === -1) return item.ask;
+
+  // If there is a bid + ask, then average them. Also dumb, but close enough?
+  return +((item.ask + item.bid) / 2).toFixed(0);
 };
 
 export enum Skill {

@@ -10,6 +10,7 @@ import { ActionDetailMap, Cost } from "../models/Client";
 import { Fragment, useEffect, useState } from "react";
 import { ApiData } from "../services/ApiService";
 import { getFriendlyIntString } from "../helpers/Formatting";
+import {getApproxValue, getAvailableTeas, getTeaBonuses} from "../helpers/CommonFunctions";
 import Icon from "./Icon";
 
 interface Props {
@@ -19,26 +20,22 @@ interface Props {
 }
 
 export default function ActionCalc({ action, fromRaw = false, data }: Props) {
-  const [priceOverrides, setPriceOverrides] = useState<{
-    [key: string]: number | "";
-  }>({});
+  const [priceOverrides, setPriceOverrides] = useState<{[key: string]: number | "";}>({});
   const [teas, setTeas] = useState<string[]>([]);
-  const availableTeas = Object.values(data.itemDetails)
-    .filter((x) => x.consumableDetail.usableInActionTypeMap?.[action.type])
-    .map((x) => ({
-      label: x.name,
-      value: x.hrid,
-    }));
+  const availableTeas = getAvailableTeas(data, action.type);
 
-  useEffect(() => {
-    setTeas([]);
-  }, [action]);
+  useEffect(() => { setTeas([]); }, [action]);
 
   if (!action.outputItems) return <Fragment />;
 
-  const hasArtisan = teas.some((x) => x === "/items/artisan_tea");
-  const wisdomTeaBonus = teas.some((x) => x === "/items/wisdom_tea") ? 1.12 : 1;
-  const gourmetBonus = teas.some((x) => x === "/items/gourmet_tea") ? 1.12 : 1;
+   const {
+    artisanTeaBonus,
+    wisdomTeaBonus,
+    gourmetTeaBonus,
+  } = getTeaBonuses(teas, null);
+  // const artisanBonus = teas.some((x) => x === "/items/artisan_tea") ? ARTISAN_TEA_BONUS : 1;
+  // const wisdomTeaBonus = teas.some((x) => x === "/items/wisdom_tea") ? WISDOM_TEA_BONUS : 1;
+  // const gourmetBonus = teas.some((x) => x === "/items/gourmet_tea") ? GOURMET_TEA_BONUS : 1;
 
   const outputItem = {
     ...data.itemDetails[action.outputItems[0].itemHrid],
@@ -70,20 +67,13 @@ export default function ActionCalc({ action, fromRaw = false, data }: Props) {
     upgradeHrid = newAction.upgradeItemHrid;
   }
 
-  const totalExp = actions.reduce(
-    (acc, val) => acc + val.experienceGain.value * wisdomTeaBonus,
-    0
-  );
-
-  const totalSeconds = actions.reduce(
-    (acc, val) => acc + val.baseTimeCost / 1000000000,
-    0
-  );
+  const totalExp = actions.reduce((acc, val) => acc + val.experienceGain.value * wisdomTeaBonus, 0);
+  const totalSeconds = actions.reduce((acc, val) => acc + val.baseTimeCost / 1000000000, 0);
 
   const rowData = inputs.map((x) => {
     return {
       ...data.itemDetails[x.itemHrid],
-      count: hasArtisan ? x.count * 0.9 : x.count,
+      count: x.count * artisanTeaBonus,
     };
   });
 
@@ -110,44 +100,20 @@ export default function ActionCalc({ action, fromRaw = false, data }: Props) {
     0
   );
 
-  const getApproxValue = (hrid: string): number => {
-    if (hrid === "/items/coin") return 1;
-
-    if (priceOverrides[hrid]) return +priceOverrides[hrid];
-
-    const item = data.itemDetails[hrid];
-
-    if (item.ask === -1 && item.bid === -1) {
-      return item.sellPrice;
-    } else if (item.ask === -1) {
-      return item.bid;
-    } else if (item.bid === -1) {
-      return item.ask;
-    } else {
-      return +((item.ask + item.bid) / 2).toFixed(0);
-    }
-  };
-
   const overrideTotal = rowData.reduce(
-    (acc, val) => acc + getApproxValue(val.hrid) * val.count,
+    (acc, val) => acc + getApproxValue(val.hrid, priceOverrides, data) * val.count,
     0
   );
 
-  const outputCount = outputItem.count * gourmetBonus;
-  const outputCost = getApproxValue(outputItem.hrid);
+  const outputCount = outputItem.count * gourmetTeaBonus;
+  const outputCost = getApproxValue(outputItem.hrid, priceOverrides, data);
 
   const rows = rowData.map((x, i) => {
     if (x.hrid === "/items/coin") {
       return (
         <tr key={x.hrid + i}>
           <td>
-            <Flex
-              justify="flex-start"
-              align="center"
-              direction="row"
-              wrap="wrap"
-              gap="xs"
-            >
+            <Flex justify="flex-start" align="center" direction="row" wrap="wrap" gap="xs">
               <Icon hrid={x.hrid} /> {x.name}
             </Flex>
           </td>
@@ -160,13 +126,7 @@ export default function ActionCalc({ action, fromRaw = false, data }: Props) {
     return (
       <tr key={x.hrid + i}>
         <td>
-          <Flex
-            justify="flex-start"
-            align="center"
-            direction="row"
-            wrap="wrap"
-            gap="xs"
-          >
+          <Flex justify="flex-start" align="center" direction="row" wrap="wrap" gap="xs">
             <Icon hrid={x.hrid} /> {x.name}
           </Flex>
         </td>
@@ -178,7 +138,7 @@ export default function ActionCalc({ action, fromRaw = false, data }: Props) {
           <NumberInput
             hideControls
             value={priceOverrides[x.hrid]}
-            placeholder={getFriendlyIntString(getApproxValue(x.hrid))}
+            placeholder={getFriendlyIntString(getApproxValue(x.hrid, priceOverrides, data))}
             onChange={(y) =>
               setPriceOverrides({
                 ...priceOverrides,

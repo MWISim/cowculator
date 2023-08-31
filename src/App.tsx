@@ -19,8 +19,7 @@ const ItemLookup = lazy(() => import("./components/ItemLookup"));
 const Enhancing = lazy(() => import("./components/Enhancing"));
 const Gathering = lazy(() => import("./components/Gathering"));
 const Calculator = lazy(() => import("./components/Calculator"));
-const Combat = lazy(() => import("./components/Combat"));
-const Character = lazy(() => import("./components/Character"));
+
 
 export default function App() {
   const { data, isLoading } = useQuery({
@@ -35,24 +34,13 @@ export default function App() {
     <AppShell
       padding="md"
       footer={
-        <Footer
-          height={{
-            base: 65,
-            sm: 25,
-          }}
-        >
-          <Flex
-            gap="xs"
-            justify="center"
-            align="flex-start"
-            direction="row"
-            wrap="wrap"
-          >
+        <Footer height={{base: 65, sm: 25}}>
+          <Flex gap="xs" justify="center" align="flex-start" direction="row" wrap="wrap" >
             <div>
               Game Version: <Code>{data.gameVersion}</Code>
             </div>
             <div>
-              Market Date:{" "}
+              Market Date:&nbsp;
               <Code>
                 {data.marketTime ? data.marketTime.toLocaleString() : "No data"}
               </Code>
@@ -62,10 +50,7 @@ export default function App() {
       }
       styles={(theme) => ({
         main: {
-          backgroundColor:
-            theme.colorScheme === "dark"
-              ? theme.colors.dark[8]
-              : theme.colors.gray[0],
+          backgroundColor: theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.colors.gray[0]
         },
       })}
     >
@@ -73,7 +58,6 @@ export default function App() {
         <Suspense fallback={<Loader />}>
           <Tabs variant="outline" defaultValue="production">
             <Tabs.List>
-              {/* <Tabs.Tab value="character">Character</Tabs.Tab> */}
               <Tabs.Tab value="production">Production</Tabs.Tab>
               <Tabs.Tab value="itemLookup">Item Lookup</Tabs.Tab>
               <Tabs.Tab value="milking">Milking</Tabs.Tab>
@@ -85,13 +69,8 @@ export default function App() {
               <Tabs.Tab value="cooking">Cooking</Tabs.Tab>
               <Tabs.Tab value="brewing">Brewing</Tabs.Tab>
               <Tabs.Tab value="enhancing">Enhancing</Tabs.Tab>
-              <Tabs.Tab value="combat">Combat</Tabs.Tab>
               <Tabs.Tab value="market">Market</Tabs.Tab>
             </Tabs.List>
-
-            <Tabs.Panel value="character" pt="xs">
-              <Character data={data} />
-            </Tabs.Panel>
 
             <Tabs.Panel value="production" pt="xs">
               <Calculator data={data} />
@@ -102,34 +81,19 @@ export default function App() {
             </Tabs.Panel>
 
             <Tabs.Panel value="milking" pt="xs">
-              <Gathering
-                skill={Skill.Milking}
-                type={ActionType.Milking}
-                data={data}
-              />
+              <Gathering skill={Skill.Milking} type={ActionType.Milking} data={data} />
             </Tabs.Panel>
 
             <Tabs.Panel value="foraging" pt="xs">
-              <Gathering
-                skill={Skill.Foraging}
-                type={ActionType.Foraging}
-                data={data}
-              />
+              <Gathering skill={Skill.Foraging} type={ActionType.Foraging} data={data} />
             </Tabs.Panel>
 
             <Tabs.Panel value="woodcutting" pt="xs">
-              <Gathering
-                skill={Skill.Woodcutting}
-                type={ActionType.Woodcutting}
-                data={data}
-              />
+              <Gathering skill={Skill.Woodcutting} type={ActionType.Woodcutting} data={data} />
             </Tabs.Panel>
 
             <Tabs.Panel value="cheesesmithing" pt="xs">
-              <ActionCategorySelector
-                skill={Skill.Cheesesmithing}
-                data={data}
-              />
+              <ActionCategorySelector skill={Skill.Cheesesmithing} data={data} />
             </Tabs.Panel>
 
             <Tabs.Panel value="crafting" pt="xs">
@@ -141,7 +105,7 @@ export default function App() {
             </Tabs.Panel>
 
             <Tabs.Panel value="cooking" pt="xs">
-              <ActionCategorySelector skill={Skill.Cooking} data={data} />
+              <ActionCategorySelector skill={Skill.Cooking} data={data} showFromRaw={false} />
             </Tabs.Panel>
 
             <Tabs.Panel value="brewing" pt="xs">
@@ -150,10 +114,6 @@ export default function App() {
 
             <Tabs.Panel value="enhancing" pt="xs">
               <Enhancing data={data} />
-            </Tabs.Panel>
-
-            <Tabs.Panel value="combat" pt="xs">
-              <Combat data={data} />
             </Tabs.Panel>
 
             <Tabs.Panel value="market" pt="xs">

@@ -67,3 +67,16 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Overrides for messed up UI stuff */
+.mantine-Switch-root {
+  margin-top: 1.5rem;
+}
+
+.mantine-InputWrapper-root.small {
+  width: 4rem;
+}
+
+.mantine-InputWrapper-root.medium {
+  width: 7rem;
+}

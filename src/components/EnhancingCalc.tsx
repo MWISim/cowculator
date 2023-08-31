@@ -6,6 +6,7 @@ import { useState } from "react";
 import { getFriendlyIntString } from "../helpers/Formatting";
 import Icon from "./Icon";
 import { Duration } from "luxon";
+import { getApproxValue } from "../helpers/CommonFunctions";
 
 interface Props {
   data: ApiData;
@@ -54,23 +55,6 @@ export default function EnhancingCalc({
     (action.baseTimeCost / 1000000000) *
     Math.min(1, 100 / (100 + level - item.itemLevel + (gearSpeed || 0)));
 
-  const getApproxValue = (hrid: string): number => {
-    if (hrid === "/items/coin") return 1;
-
-    if (priceOverrides[hrid]) return +priceOverrides[hrid];
-
-    const item = data.itemDetails[hrid];
-
-    if (item.ask === -1 && item.bid === -1) {
-      return item.sellPrice;
-    } else if (item.ask === -1) {
-      return item.bid;
-    } else if (item.bid === -1) {
-      return item.ask;
-    } else {
-      return +((item.ask + item.bid) / 2).toFixed(0);
-    }
-  };
 
   const getAveragePrice = (items: Cost[] | null): number => {
     let price = 0;
