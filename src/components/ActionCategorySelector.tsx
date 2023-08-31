@@ -9,7 +9,7 @@ import {
 } from "@mantine/core";
 import Materials from "./Materials";
 import { ApiData } from "../services/ApiService";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { getTeaBonuses } from "../helpers/CommonFunctions";
 import { UserDetails, userInfoContext } from "../helpers/StoredUserData";
 

@@ -454,6 +454,10 @@ export class UserDetails {
       return false;
     }
   }
+
+  resetUserData() {
+    this.constructor(this.#rerenderer);
+  }
 }
 
 type contextT = {
