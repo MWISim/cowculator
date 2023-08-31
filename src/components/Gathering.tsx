@@ -8,7 +8,7 @@ import {
 } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
 import { ActionType, DropTable } from "../models/Client";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import Icon from "./Icon";
 import { getFriendlyIntString } from "../helpers/Formatting";
 import {

@@ -1,5 +1,4 @@
 import * as MagicNumbers from "./MagicNumbers";
-import {BLESSED_TEA_BONUS, EFFICIENCY_TEA_BONUS, GATHERING_TEA_BONUS, GOURMET_TEA_BONUS, LEVEL_TEA_BONUS} from "./MagicNumbers";
 
 /**
  * Returns the amount of time, in seconds, that the given action will take.
