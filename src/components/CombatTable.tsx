@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import { getFriendlyIntString } from "../helpers/Formatting";
 import { ItemDetail } from "../models/Client";
 import { MarketValue } from "../models/Market";
@@ -215,16 +215,8 @@ interface Props {
 
 export default function CombatTable({ action, data, kph }: Props) {
   const { userInfo } = useContext(userInfoContext);
-  const [priceOverrides, setPriceOverrides] = useState(
-    userInfo.current.CombatTable.priceOverrides
-  );
 
-  useEffect(() => {
-    userInfo.current = {
-      ...userInfo.current,
-      CombatTable: { priceOverrides },
-    };
-  }, [userInfo.current.tabControl.current === "combat"]);
+  const { priceOverrides } = userInfo.current.CombatTable;
 
   const enemies =
     planetSpawnRates[action] ??
@@ -327,10 +319,10 @@ export default function CombatTable({ action, data, kph }: Props) {
             placeholder={x.coinPerItem.toString()}
             disabled={x.itemHrid === "/items/coin"}
             onChange={(y) =>
-              setPriceOverrides({
-                ...priceOverrides,
-                [x.itemHrid]: y,
-              })
+              userInfo.current.changeCombatTable((curr) => ({
+                ...curr,
+                priceOverrides: { ...curr.priceOverrides, [x.itemHrid]: y },
+              })).r
             }
           />
         </td>

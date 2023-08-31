@@ -1,16 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { getMarketData } from "../services/ApiService";
 import { Code, Flex, Loader, Space, Table, TextInput } from "@mantine/core";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useMemo } from "react";
 import { userInfoContext } from "../helpers/StoredUserData";
 
 export default function Market() {
   const { userInfo } = useContext(userInfoContext);
-  const [search, setSearch] = useState(userInfo.current.Market.search);
 
-  useEffect(() => {
-    userInfo.current = { ...userInfo.current, Market: { search } };
-  }, [userInfo.current.tabControl.current === "market"]);
+  const { search } = userInfo.current.Market;
 
   const { data, isLoading } = useQuery({
     queryKey: ["marketData"],
@@ -54,7 +51,12 @@ export default function Market() {
           placeholder="Holy Brush"
           label="Search"
           value={search}
-          onChange={(event) => setSearch(event.currentTarget.value)}
+          onChange={(event) =>
+            userInfo.current.changeMarket((curr) => ({
+              ...curr,
+              search: event.currentTarget.value,
+            })).r
+          }
         />
       </Flex>
       <Space h="md" />

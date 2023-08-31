@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect } from "react";
 import {
   Flex,
   Group,
@@ -20,77 +20,53 @@ interface Props {
 
 export default function Enhancing({ data }: Props) {
   const { userInfo } = useContext(userInfoContext);
-  const skill = Skill.Enhancing;
-  const [item, setItem] = useState(userInfo.current.Enhancing.item);
-  const [level, setLevel] = useState(userInfo.current.Enhancing.level);
-  const [toolBonus, setToolBonus] = useState(
-    userInfo.current.Enhancing.toolBonus
-  );
-  const [gearSpeed, setGearSpeed] = useState(
-    userInfo.current.Enhancing.gearSpeed
-  );
-  const [teas, setTeas] = useState(userInfo.current.Enhancing.teas);
-  const [target, setTarget] = useState(userInfo.current.Enhancing.target);
 
-  const availableTeas = useMemo(
-    () =>
-      userInfo.current.Enhancing.availableTeas.length > 0
-        ? userInfo.current.Enhancing.availableTeas
-        : Object.values(data.itemDetails)
-            .filter(
-              (x) =>
-                x.consumableDetail.usableInActionTypeMap?.[ActionType.Enhancing]
-            )
-            .map((x) => ({
-              label: x.name,
-              value: x.hrid,
-            })),
-    [data.itemDetails]
-  );
+  const {
+    item,
+    level,
+    toolBonus,
+    gearSpeed,
+    teas,
+    target,
+    availableTeas,
+    items,
+    itemOptions,
+  } = userInfo.current.Enhancing;
+  const skill = Skill.Enhancing;
+
+  useEffect(() => {
+    userInfo.current.changeEnhancing((curr) => ({
+      ...curr,
+      availableTeas: Object.values(data.itemDetails)
+        .filter(
+          (x) =>
+            x.consumableDetail.usableInActionTypeMap?.[ActionType.Enhancing]
+        )
+        .map((x) => ({
+          label: x.name,
+          value: x.hrid,
+        })),
+      items: Object.values(data.itemDetails)
+        .filter((x) => x.enhancementCosts)
+        .sort((a, b) => {
+          if (a.sortIndex < b.sortIndex) return -1;
+          if (a.sortIndex > b.sortIndex) return 1;
+          return 0;
+        }),
+    }));
+  }, [data.itemDetails]);
 
   const { teaError, levelTeaBonus } = getTeaBonuses(teas, skill);
 
-  const items = useMemo(
-    () =>
-      userInfo.current.Enhancing.items.length > 0
-        ? userInfo.current.Enhancing.items
-        : Object.values(data.itemDetails)
-            .filter((x) => x.enhancementCosts)
-            .sort((a, b) => {
-              if (a.sortIndex < b.sortIndex) return -1;
-              if (a.sortIndex > b.sortIndex) return 1;
-              return 0;
-            }),
-    [data.itemDetails]
-  );
-
-  const itemOptions = useMemo(
-    () =>
-      userInfo.current.Enhancing.itemOptions.length > 0
-        ? userInfo.current.Enhancing.itemOptions
-        : items.map((x) => ({
-            value: x.hrid,
-            label: x.name,
-          })),
-    [items]
-  );
-
   useEffect(() => {
-    userInfo.current = {
-      ...userInfo.current,
-      Enhancing: {
-        item,
-        level,
-        toolBonus,
-        gearSpeed,
-        teas,
-        target,
-        availableTeas,
-        items,
-        itemOptions,
-      },
-    };
-  }, [userInfo.current.tabControl.current === "enhancing"]);
+    userInfo.current.changeEnhancing((curr) => ({
+      ...curr,
+      itemOptions: items.map((x) => ({
+        value: x.hrid,
+        label: x.name,
+      })),
+    }));
+  }, [items]);
 
   return (
     <Flex
@@ -103,7 +79,12 @@ export default function Enhancing({ data }: Props) {
       <Group>
         <NumberInput
           value={level}
-          onChange={setLevel}
+          onChange={(val) =>
+            userInfo.current.changeEnhancing((curr) => ({
+              ...curr,
+              level: val,
+            })).r
+          }
           label="Enhancing Level"
           withAsterisk
           hideControls
@@ -117,7 +98,12 @@ export default function Enhancing({ data }: Props) {
         />
         <NumberInput
           value={toolBonus}
-          onChange={setToolBonus}
+          onChange={(val) =>
+            userInfo.current.changeEnhancing((curr) => ({
+              ...curr,
+              toolBonus: val,
+            })).r
+          }
           label="Tool Bonus"
           withAsterisk
           hideControls
@@ -126,7 +112,12 @@ export default function Enhancing({ data }: Props) {
         />
         <NumberInput
           value={gearSpeed}
-          onChange={setGearSpeed}
+          onChange={(val) =>
+            userInfo.current.changeEnhancing((curr) => ({
+              ...curr,
+              gearSpeed: val,
+            })).r
+          }
           label="Gear Speed"
           withAsterisk
           hideControls
@@ -141,7 +132,12 @@ export default function Enhancing({ data }: Props) {
             clearable
             data={availableTeas}
             value={teas}
-            onChange={setTeas}
+            onChange={(val) =>
+              userInfo.current.changeEnhancing((curr) => ({
+                ...curr,
+                teas: val,
+              })).r
+            }
             label="Teas"
             maxSelectedValues={3}
             error={teaError}
@@ -153,14 +149,22 @@ export default function Enhancing({ data }: Props) {
           searchable
           size="lg"
           value={item}
-          onChange={setItem}
+          onChange={(val) =>
+            userInfo.current.changeEnhancing((curr) => ({ ...curr, item: val }))
+              .r
+          }
           data={itemOptions}
           label="Select an item"
           placeholder="Pick one"
         />
         <NumberInput
           value={target}
-          onChange={(value) => setTarget(value || 1)}
+          onChange={(value) =>
+            userInfo.current.changeEnhancing((curr) => ({
+              ...curr,
+              target: value || 1,
+            })).r
+          }
           label="Target Level"
           withAsterisk
           min={1}

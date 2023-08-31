@@ -1,7 +1,7 @@
 import { Flex, NumberInput, Select } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
 import { ActionFunction } from "../models/Client";
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import CombatTable from "./CombatTable";
 import { userInfoContext } from "../helpers/StoredUserData";
 
@@ -11,12 +11,8 @@ interface Props {
 
 export default function Combat({ data }: Props) {
   const { userInfo } = useContext(userInfoContext);
-  const [action, setAction] = useState(userInfo.current.Combat.action);
-  const [kph, setKph] = useState(userInfo.current.Combat.kph);
 
-  useEffect(() => {
-    userInfo.current = { ...userInfo.current, Combat: { action, kph } };
-  }, [userInfo.current.tabControl.current === "combat"]);
+  const { action, kph } = userInfo.current.Combat;
 
   const actions = Object.values(data.actionDetails)
     .filter((x) => x.function === ActionFunction.Combat)
@@ -44,14 +40,19 @@ export default function Combat({ data }: Props) {
         withAsterisk
         size="lg"
         value={action}
-        onChange={setAction}
+        onChange={(val) =>
+          userInfo.current.changeCombat((curr) => ({ ...curr, action: val })).r
+        }
         data={actions}
         label="Select a zone"
         placeholder="Pick one"
       />
       <NumberInput
         value={kph}
-        onChange={(val) => setKph(val || 0)}
+        onChange={(val) =>
+          userInfo.current.changeCombat((curr) => ({ ...curr, kph: val || 0 }))
+            .r
+        }
         label="Encounters/hr"
         withAsterisk
         hideControls

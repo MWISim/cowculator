@@ -1,6 +1,6 @@
 import { Flex, Select, Grid, Table, Title } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
-import { useMemo, useState, useContext, useEffect } from "react";
+import { useContext, useEffect } from "react";
 import Icon from "./Icon";
 import { userInfoContext } from "../helpers/StoredUserData";
 
@@ -10,22 +10,18 @@ interface Props {
 
 export default function ItemLookup({ data }: Props) {
   const { userInfo } = useContext(userInfoContext);
-  const [item, setItem] = useState(userInfo.current.ItemLookup.item);
 
-  const items = useMemo(
-    () =>
-      userInfo.current.ItemLookup.items.length > 0
-        ? userInfo.current.ItemLookup.items
-        : Object.values(data.itemDetails).map((x) => ({
-            value: x.hrid,
-            label: x.name,
-          })),
-    [data.itemDetails]
-  );
+  const { item, items } = userInfo.current.ItemLookup;
 
   useEffect(() => {
-    userInfo.current = { ...userInfo.current, ItemLookup: { item, items } };
-  }, [userInfo.current.tabControl.current === "itemLookup"]);
+    userInfo.current.changeItemLookup((curr) => ({
+      ...curr,
+      items: Object.values(data.itemDetails).map((x) => ({
+        value: x.hrid,
+        label: x.name,
+      })),
+    }));
+  }, [data.itemDetails]);
 
   const choice = data.itemDetails[item || ""] || {};
 
@@ -62,7 +58,10 @@ export default function ItemLookup({ data }: Props) {
         searchable
         size="lg"
         value={item}
-        onChange={setItem}
+        onChange={(val) =>
+          userInfo.current.changeItemLookup((curr) => ({ ...curr, item: val }))
+            .r
+        }
         data={items}
         label="Select an item"
       />

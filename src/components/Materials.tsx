@@ -1,7 +1,7 @@
 import { Flex, NumberInput, Table } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
 import { Cost } from "../models/Client";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useMemo } from "react";
 import Icon from "./Icon";
 import { getFriendlyIntString } from "../helpers/Formatting";
 import {
@@ -37,9 +37,8 @@ export default function Materials({
   skill,
 }: Props) {
   const { userInfo } = useContext(userInfoContext);
-  const [priceOverrides, setPriceOverrides] = useState(
-    userInfo.current.Materials.priceOverrides
-  );
+
+  const { priceOverrides } = userInfo.current.Materials;
 
   const {
     wisdomTeaBonus,
@@ -50,48 +49,30 @@ export default function Materials({
 
   const actions = useMemo(
     () =>
-      userInfo.current.Materials.actions.length > 0
-        ? userInfo.current.Materials.actions
-        : Object.values(data.actionDetails)
-            .filter((x) => x.category === actionCategory)
-            .sort((a, b) => {
-              if (a.sortIndex > b.sortIndex) return -1;
-              if (a.sortIndex < b.sortIndex) return 1;
-              return 0;
-            }),
+      Object.values(data.actionDetails)
+        .filter((x) => x.category === actionCategory)
+        .sort((a, b) => {
+          if (a.sortIndex > b.sortIndex) return -1;
+          if (a.sortIndex < b.sortIndex) return 1;
+          return 0;
+        }),
     [actionCategory, data.actionDetails]
   );
 
   const relevantItems = useMemo(
-    () =>
-      userInfo.current.Materials.relevantItems.length > 0
-        ? userInfo.current.Materials.relevantItems
-        : [
-            ...new Set(
-              actions
-                .flatMap((x) => {
-                  const input = x.inputItems ?? [];
-                  const output = x.outputItems ?? [];
-                  return [input, output].flat();
-                })
-                .map((x) => data.itemDetails[x.itemHrid])
-            ),
-          ],
+    () => [
+      ...new Set(
+        actions
+          .flatMap((x) => {
+            const input = x.inputItems ?? [];
+            const output = x.outputItems ?? [];
+            return [input, output].flat();
+          })
+          .map((x) => data.itemDetails[x.itemHrid])
+      ),
+    ],
     [actions, data.itemDetails]
   );
-
-  useEffect(() => {
-    userInfo.current = {
-      ...userInfo.current,
-      Materials: { priceOverrides, actions, relevantItems },
-    };
-  }, [
-    userInfo.current.tabControl.current === "cheesesmithing",
-    userInfo.current.tabControl.current === "crafting",
-    userInfo.current.tabControl.current === "tailoring",
-    userInfo.current.tabControl.current === "cooking",
-    userInfo.current.tabControl.current === "brewing",
-  ]);
 
   const getApproxValue = (hrid: string): number => {
     if (hrid === "/items/coin") return 1;
@@ -239,10 +220,10 @@ export default function Materials({
               value={priceOverrides[x.hrid]}
               placeholder={`${getApproxValue(x.hrid)}`}
               onChange={(y) =>
-                setPriceOverrides({
-                  ...priceOverrides,
-                  [x.hrid]: y,
-                })
+                userInfo.current.changeMaterials((curr) => ({
+                  ...curr,
+                  priceOverrides: { ...curr.priceOverrides, [x.hrid]: y },
+                })).r
               }
             />
           </td>

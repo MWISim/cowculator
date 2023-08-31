@@ -29,56 +29,45 @@ const excludedSkills = [
 
 export default function Character({ data }: Props) {
   const { userInfo } = useContext(userInfoContext);
-  const [character, setCharacter] = useState<CharacterType>(
-    userInfo.current.Character.character
-  );
 
-  const relevantSkills = useMemo(
+  const { character, relevantSkills } = userInfo.current.Character;
+
+  useEffect(() => {
+    userInfo.current.changeCharacter((curr) => ({
+      ...curr,
+      relevantSkills: Object.values(data.skillDetails)
+        .filter((x) => !excludedSkills.includes(x.hrid))
+        .sort((a, b) => {
+          if (a.sortIndex < b.sortIndex) return -1;
+          if (a.sortIndex > b.sortIndex) return 1;
+          return 0;
+        }),
+    }));
+  }, [data.skillDetails]);
+
+  const toolMap = useMemo(
     () =>
-      userInfo.current.Character.relevantSkills.length > 0
-        ? userInfo.current.Character.relevantSkills
-        : Object.values(data.skillDetails)
-            .filter((x) => !excludedSkills.includes(x.hrid))
+      new Map(
+        relevantSkills.map((x) => {
+          const tools = Object.values(data.itemDetails)
+            .filter(
+              (y) =>
+                y.categoryHrid === CategoryHrid.ItemCategoriesEquipment &&
+                y.equipmentDetail.levelRequirements?.some(
+                  (z) => z.skillHrid === x.hrid
+                )
+            )
             .sort((a, b) => {
               if (a.sortIndex < b.sortIndex) return -1;
               if (a.sortIndex > b.sortIndex) return 1;
               return 0;
-            }),
-    [data.skillDetails]
-  );
+            });
 
-  const toolMap = useMemo(
-    () =>
-      userInfo.current.Character.toolMap.size > 0
-        ? userInfo.current.Character.toolMap
-        : new Map(
-            relevantSkills.map((x) => {
-              const tools = Object.values(data.itemDetails)
-                .filter(
-                  (y) =>
-                    y.categoryHrid === CategoryHrid.ItemCategoriesEquipment &&
-                    y.equipmentDetail.levelRequirements?.some(
-                      (z) => z.skillHrid === x.hrid
-                    )
-                )
-                .sort((a, b) => {
-                  if (a.sortIndex < b.sortIndex) return -1;
-                  if (a.sortIndex > b.sortIndex) return 1;
-                  return 0;
-                });
-
-              return [x.hrid, tools];
-            })
-          ),
+          return [x.hrid, tools];
+        })
+      ),
     [data.itemDetails, relevantSkills]
   );
-
-  useEffect(() => {
-    userInfo.current = {
-      ...userInfo.current,
-      Character: { character, relevantSkills, toolMap },
-    };
-  }, [userInfo.current.tabControl.current === "character"]);
 
   const rows = relevantSkills.map((x) => {
     const tools = toolMap.get(x.hrid)?.map((x) => ({
@@ -107,13 +96,13 @@ export default function Character({ data }: Props) {
           <NumberInput
             value={character[x.hrid]?.level || 1}
             onChange={(val) =>
-              setCharacter({
-                ...character,
-                [x.hrid]: {
-                  ...character[x.hrid],
-                  level: val || 1,
+              userInfo.current.changeCharacter((curr) => ({
+                ...curr,
+                character: {
+                  ...curr.character,
+                  [x.hrid]: { ...curr.character[x.hrid], level: val || 1 },
                 },
-              })
+              })).r
             }
             withAsterisk
             hideControls
@@ -127,13 +116,13 @@ export default function Character({ data }: Props) {
             size="lg"
             value={character[x.hrid]?.toolHrid}
             onChange={(val) =>
-              setCharacter({
-                ...character,
-                [x.hrid]: {
-                  ...character[x.hrid],
-                  toolHrid: val,
+              userInfo.current.changeCharacter((curr) => ({
+                ...curr,
+                character: {
+                  ...curr.character,
+                  [x.hrid]: { ...curr.character[x.hrid], toolHrid: val },
                 },
-              })
+              })).r
             }
             data={tools ?? []}
             placeholder="Empty"
@@ -143,13 +132,13 @@ export default function Character({ data }: Props) {
           <NumberInput
             value={character[x.hrid]?.toolLevel || 0}
             onChange={(val) =>
-              setCharacter({
-                ...character,
-                [x.hrid]: {
-                  ...character[x.hrid],
-                  toolLevel: val || 0,
+              userInfo.current.changeCharacter((curr) => ({
+                ...curr,
+                character: {
+                  ...curr.character,
+                  [x.hrid]: { ...curr.character[x.hrid], toolLevel: val || 0 },
                 },
-              })
+              })).r
             }
             min={0}
             max={20}

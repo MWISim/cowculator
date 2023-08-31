@@ -8,35 +8,29 @@ import {
 } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
 import { ActionType, DropTable } from "../models/Client";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect } from "react";
 import Icon from "./Icon";
 import { getFriendlyIntString } from "../helpers/Formatting";
-import {
-  Skill,
-  getActionSeconds,
-  getTeaBonuses,
-} from "../helpers/CommonFunctions";
-import { userInfoContext } from "../helpers/StoredUserData";
+import { getActionSeconds, getTeaBonuses } from "../helpers/CommonFunctions";
+import { UserDetails, userInfoContext } from "../helpers/StoredUserData";
 
 interface Props {
   type: ActionType;
   data: ApiData;
-  skill: Skill;
+  skill: keyof UserDetails["Gathering"];
 }
 
 export default function Gathering({ type, data, skill }: Props) {
   const { userInfo } = useContext(userInfoContext);
-  const [level, setLevel] = useState(userInfo.current.Gathering[skill].level);
-  const [toolBonus, setToolBonus] = useState(
-    userInfo.current.Gathering[skill].toolBonus
-  );
-  const [gearEfficiency, setGearEfficiency] = useState(
-    userInfo.current.Gathering[skill].gearEfficiency
-  );
-  const [teas, setTeas] = useState(userInfo.current.Gathering[skill].teas);
-  const [priceOverrides, setPriceOverrides] = useState(
-    userInfo.current.Gathering[skill].priceOverrides
-  );
+
+  const {
+    level,
+    toolBonus,
+    gearEfficiency,
+    teas,
+    priceOverrides,
+    relevantItems,
+  } = userInfo.current.Gathering[skill];
 
   const {
     levelTeaBonus,
@@ -124,42 +118,20 @@ export default function Gathering({ type, data, skill }: Props) {
     return price;
   };
 
-  const relevantItems = useMemo(
-    () =>
-      userInfo.current.Gathering[skill].relevantItems.length > 0
-        ? userInfo.current.Gathering[skill].relevantItems
-        : [
-            ...new Set(
-              actions
-                .flatMap((x) => {
-                  return x.dropTable ?? [];
-                })
-                .map((x) => data.itemDetails[x.itemHrid])
-            ),
-          ],
-    [actions, data.itemDetails]
-  );
-
   useEffect(() => {
-    userInfo.current = {
-      ...userInfo.current,
-      Gathering: {
-        ...userInfo.current.Gathering,
-        [skill]: {
-          level,
-          toolBonus,
-          gearEfficiency,
-          teas,
-          priceOverrides,
-          relevantItems,
-        },
-      },
-    };
-  }, [
-    userInfo.current.tabControl.current === "milking",
-    userInfo.current.tabControl.current === "foraging",
-    userInfo.current.tabControl.current === "woodcutting",
-  ]);
+    userInfo.current.changeGathering(skill, (curr) => ({
+      ...curr,
+      relevantItems: [
+        ...new Set(
+          actions
+            .flatMap((x) => {
+              return x.dropTable ?? [];
+            })
+            .map((x) => data.itemDetails[x.itemHrid])
+        ),
+      ],
+    }));
+  }, [actions, data.itemDetails]);
 
   const marketRows = relevantItems.map((x) => {
     return (
@@ -184,10 +156,10 @@ export default function Gathering({ type, data, skill }: Props) {
             value={priceOverrides[x.hrid]}
             placeholder={`${getApproxValue(x.hrid)}`}
             onChange={(y) =>
-              setPriceOverrides({
-                ...priceOverrides,
-                [x.hrid]: y,
-              })
+              userInfo.current.changeGathering(skill, (curr) => ({
+                ...curr,
+                priceOverrides: { ...curr.priceOverrides, [x.hrid]: y },
+              })).r
             }
           />
         </td>
@@ -273,7 +245,12 @@ export default function Gathering({ type, data, skill }: Props) {
       >
         <NumberInput
           value={level}
-          onChange={(val) => setLevel(val || 1)}
+          onChange={(val) =>
+            userInfo.current.changeGathering(skill, (curr) => ({
+              ...curr,
+              level: val || 1,
+            })).r
+          }
           label="Level"
           withAsterisk
           hideControls
@@ -287,7 +264,12 @@ export default function Gathering({ type, data, skill }: Props) {
         />
         <NumberInput
           value={toolBonus}
-          onChange={setToolBonus}
+          onChange={(val) =>
+            userInfo.current.changeGathering(skill, (curr) => ({
+              ...curr,
+              toolBonus: val,
+            })).r
+          }
           label="Tool Bonus"
           withAsterisk
           hideControls
@@ -296,7 +278,12 @@ export default function Gathering({ type, data, skill }: Props) {
         />
         <NumberInput
           value={gearEfficiency}
-          onChange={setGearEfficiency}
+          onChange={(val) =>
+            userInfo.current.changeGathering(skill, (curr) => ({
+              ...curr,
+              gearEfficiency: val,
+            })).r
+          }
           label="Gear Efficiency"
           withAsterisk
           hideControls
@@ -306,7 +293,12 @@ export default function Gathering({ type, data, skill }: Props) {
         <MultiSelect
           data={availableTeas}
           value={teas}
-          onChange={setTeas}
+          onChange={(val) =>
+            userInfo.current.changeGathering(skill, (curr) => ({
+              ...curr,
+              teas: val,
+            })).r
+          }
           label="Teas"
           maxSelectedValues={3}
           error={teaError}

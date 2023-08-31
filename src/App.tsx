@@ -6,7 +6,6 @@ import {
   Footer,
   Loader,
   Tabs,
-  TabsValue,
 } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import getApiData from "./services/ApiService";
@@ -35,23 +34,10 @@ export default function App() {
   const [userInfoLoading, setUserInfoLoading] = useState(true);
 
   useEffect(() => {
-    const storedData = localStorage.getItem("userInfo");
-    if (storedData) userInfo.current = JSON.parse(storedData);
+    if (!userInfo.current.loadData(localStorage))
+      console.log("User data not found or out of date");
     setUserInfoLoading(false);
   }, []);
-
-  const [tabController, setTabController] = useState<TabsValue>(
-    userInfo.current.tabControl.current
-  );
-
-  useEffect(() => {
-    if (!userInfoLoading) userInfo.current.tabControl.current = tabController;
-  }, [tabController, userInfoLoading]);
-
-  useEffect(() => {
-    if (!userInfoLoading)
-      localStorage.setItem("userInfo", JSON.stringify(userInfo.current));
-  }, [userInfo.current.tabControl.current]);
 
   if (isLoading || !data || userInfoLoading) return <Loader />;
 
@@ -97,8 +83,10 @@ export default function App() {
         <Suspense fallback={<Loader />}>
           <Tabs
             variant="outline"
-            value={tabController}
-            onTabChange={setTabController}
+            value={userInfo.current.tabControl.current}
+            onTabChange={(val) =>
+              userInfo.current.nextTab(val).r.saveData(localStorage)
+            }
           >
             <Tabs.List>
               {/* <Tabs.Tab value="character">Character</Tabs.Tab> */}

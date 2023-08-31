@@ -10,37 +10,19 @@ import {
 import Materials from "./Materials";
 import { ApiData } from "../services/ApiService";
 import { useContext, useEffect, useMemo, useState } from "react";
-import { Skill, getTeaBonuses } from "../helpers/CommonFunctions";
-import { userInfoContext } from "../helpers/StoredUserData";
+import { getTeaBonuses } from "../helpers/CommonFunctions";
+import { UserDetails, userInfoContext } from "../helpers/StoredUserData";
 
 interface Props {
-  skill: Skill;
+  skill: keyof UserDetails["ActionCategorySelector"];
   data: ApiData;
 }
 
 export default function ActionCategorySelector({ skill, data }: Props) {
   const { userInfo } = useContext(userInfoContext);
-  const [fromRaw, setFromRaw] = useState(
-    userInfo.current.ActionCategorySelector[skill].fromRaw
-  );
-  const [level, setLevel] = useState(
-    userInfo.current.ActionCategorySelector[skill].level
-  );
-  const [xp, setXp] = useState(
-    userInfo.current.ActionCategorySelector[skill].xp
-  );
-  const [targetLevel, setTargetLevel] = useState(
-    userInfo.current.ActionCategorySelector[skill].targetLevel
-  );
-  const [toolBonus, setToolBonus] = useState(
-    userInfo.current.ActionCategorySelector[skill].toolBonus
-  );
-  const [teas, setTeas] = useState(
-    userInfo.current.ActionCategorySelector[skill].teas
-  );
-  const [gearEfficiency, setGearEfficiency] = useState(
-    userInfo.current.ActionCategorySelector[skill].gearEfficiency
-  );
+
+  const { fromRaw, level, xp, targetLevel, toolBonus, teas, gearEfficiency } =
+    userInfo.current.ActionCategorySelector[skill];
   const { teaError, levelTeaBonus } = getTeaBonuses(teas, skill);
 
   const availableTeas = Object.values(data.itemDetails)
@@ -55,46 +37,19 @@ export default function ActionCategorySelector({ skill, data }: Props) {
 
   const options = useMemo(
     () =>
-      userInfo.current.ActionCategorySelector[skill].options.length > 0
-        ? userInfo.current.ActionCategorySelector[skill].options
-        : Object.values(data.actionCategoryDetails)
-            .filter((x) => x.hrid.startsWith(`/action_categories/${skill}`))
-            .sort((a, b) => {
-              if (a.sortIndex < b.sortIndex) return -1;
-              if (a.sortIndex > b.sortIndex) return 1;
-              return 0;
-            })
-            .map((x) => ({
-              value: x.hrid,
-              label: x.name,
-            })),
+      Object.values(data.actionCategoryDetails)
+        .filter((x) => x.hrid.startsWith(`/action_categories/${skill}`))
+        .sort((a, b) => {
+          if (a.sortIndex < b.sortIndex) return -1;
+          if (a.sortIndex > b.sortIndex) return 1;
+          return 0;
+        })
+        .map((x) => ({
+          value: x.hrid,
+          label: x.name,
+        })),
     [skill, data.actionCategoryDetails]
   );
-
-  useEffect(() => {
-    userInfo.current = {
-      ...userInfo.current,
-      ActionCategorySelector: {
-        ...userInfo.current.ActionCategorySelector,
-        [skill]: {
-          fromRaw,
-          level,
-          xp,
-          targetLevel,
-          toolBonus,
-          teas,
-          gearEfficiency,
-          options,
-        },
-      },
-    };
-  }, [
-    userInfo.current.tabControl.current === "cheesesmithing",
-    userInfo.current.tabControl.current === "crafting",
-    userInfo.current.tabControl.current === "tailoring",
-    userInfo.current.tabControl.current === "cooking",
-    userInfo.current.tabControl.current === "brewing",
-  ]);
 
   const [category, setCategory] = useState(options[0].value);
 
@@ -121,11 +76,21 @@ export default function ActionCategorySelector({ skill, data }: Props) {
           offLabel="BUY UPGRADE ITEM"
           size="xl"
           checked={fromRaw}
-          onChange={(event) => setFromRaw(event.currentTarget.checked)}
+          onChange={(event) =>
+            userInfo.current.changeActionCategorySelector(skill, (curr) => ({
+              ...curr,
+              fromRaw: event.currentTarget.checked,
+            })).r
+          }
         />
         <NumberInput
           value={level}
-          onChange={setLevel}
+          onChange={(val) =>
+            userInfo.current.changeActionCategorySelector(skill, (curr) => ({
+              ...curr,
+              level: val,
+            })).r
+          }
           label="Level"
           withAsterisk
           hideControls
@@ -139,7 +104,12 @@ export default function ActionCategorySelector({ skill, data }: Props) {
         />
         <NumberInput
           value={toolBonus}
-          onChange={setToolBonus}
+          onChange={(val) =>
+            userInfo.current.changeActionCategorySelector(skill, (curr) => ({
+              ...curr,
+              toolBonus: val,
+            })).r
+          }
           label="Tool Bonus"
           withAsterisk
           hideControls
@@ -148,7 +118,12 @@ export default function ActionCategorySelector({ skill, data }: Props) {
         />
         <NumberInput
           value={gearEfficiency}
-          onChange={setGearEfficiency}
+          onChange={(val) =>
+            userInfo.current.changeActionCategorySelector(skill, (curr) => ({
+              ...curr,
+              gearEfficiency: val,
+            })).r
+          }
           label="Gear Efficiency"
           withAsterisk
           hideControls
@@ -158,7 +133,12 @@ export default function ActionCategorySelector({ skill, data }: Props) {
         <MultiSelect
           data={availableTeas}
           value={teas}
-          onChange={setTeas}
+          onChange={(val) =>
+            userInfo.current.changeActionCategorySelector(skill, (curr) => ({
+              ...curr,
+              teas: val,
+            })).r
+          }
           label="Teas"
           maxSelectedValues={3}
           error={teaError}
@@ -166,14 +146,24 @@ export default function ActionCategorySelector({ skill, data }: Props) {
         />
         <NumberInput
           value={xp}
-          onChange={setXp}
+          onChange={(val) =>
+            userInfo.current.changeActionCategorySelector(skill, (curr) => ({
+              ...curr,
+              xp: val,
+            })).r
+          }
           label="Experience"
           withAsterisk
           hideControls
         />
         <NumberInput
           value={targetLevel}
-          onChange={setTargetLevel}
+          onChange={(val) =>
+            userInfo.current.changeActionCategorySelector(skill, (curr) => ({
+              ...curr,
+              targetLevel: val,
+            })).r
+          }
           label="Target Level"
           withAsterisk
           hideControls
