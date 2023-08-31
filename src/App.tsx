@@ -12,8 +12,9 @@ import getApiData from "./services/ApiService";
 import { ActionType } from "./models/Client";
 import Market from "./components/Market";
 import ActionCategorySelector from "./components/ActionCategorySelector";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useContext, useEffect, useState } from "react";
 import { Skill } from "./helpers/CommonFunctions";
+import { userInfoContext } from "./helpers/StoredUserData";
 
 const ItemLookup = lazy(() => import("./components/ItemLookup"));
 const Enhancing = lazy(() => import("./components/Enhancing"));
@@ -29,7 +30,16 @@ export default function App() {
     refetchInterval: 5 * 60 * 1000,
   });
 
-  if (isLoading || !data) return <Loader />;
+  const { userInfo } = useContext(userInfoContext);
+  const [userInfoLoading, setUserInfoLoading] = useState(true);
+
+  useEffect(() => {
+    if (!userInfo.current.loadData(localStorage))
+      console.log("User data not found or out of date");
+    setUserInfoLoading(false);
+  }, []);
+
+  if (isLoading || !data || userInfoLoading) return <Loader />;
 
   return (
     <AppShell
@@ -71,7 +81,13 @@ export default function App() {
     >
       <Container fluid>
         <Suspense fallback={<Loader />}>
-          <Tabs variant="outline" defaultValue="production">
+          <Tabs
+            variant="outline"
+            value={userInfo.current.tabControl.current}
+            onTabChange={(val) =>
+              userInfo.current.nextTab(val).r.saveData(localStorage)
+            }
+          >
             <Tabs.List>
               {/* <Tabs.Tab value="character">Character</Tabs.Tab> */}
               <Tabs.Tab value="production">Production</Tabs.Tab>

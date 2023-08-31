@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useContext, useMemo } from "react";
 import {
   Flex,
   Group,
@@ -12,19 +12,18 @@ import { ApiData } from "../services/ApiService";
 import EnhancingCalc from "./EnhancingCalc";
 import { ActionType } from "../models/Client";
 import { Skill, getTeaBonuses } from "../helpers/CommonFunctions";
+import { userInfoContext } from "../helpers/StoredUserData";
 
 interface Props {
   data: ApiData;
 }
 
 export default function Enhancing({ data }: Props) {
+  const { userInfo } = useContext(userInfoContext);
+
+  const { item, level, toolBonus, gearSpeed, teas, target } =
+    userInfo.current.Enhancing;
   const skill = Skill.Enhancing;
-  const [item, setItem] = useState<string | null>(null);
-  const [level, setLevel] = useState<number | "">(1);
-  const [toolBonus, setToolBonus] = useState<number | "">(0);
-  const [gearSpeed, setGearSpeed] = useState<number | "">(0);
-  const [teas, setTeas] = useState<string[]>([]);
-  const [target, setTarget] = useState<number>(1);
 
   const availableTeas = useMemo(
     () =>
@@ -74,7 +73,12 @@ export default function Enhancing({ data }: Props) {
       <Group>
         <NumberInput
           value={level}
-          onChange={setLevel}
+          onChange={(val) =>
+            userInfo.current.changeEnhancing((curr) => ({
+              ...curr,
+              level: val,
+            })).r
+          }
           label="Enhancing Level"
           withAsterisk
           hideControls
@@ -88,7 +92,12 @@ export default function Enhancing({ data }: Props) {
         />
         <NumberInput
           value={toolBonus}
-          onChange={setToolBonus}
+          onChange={(val) =>
+            userInfo.current.changeEnhancing((curr) => ({
+              ...curr,
+              toolBonus: val,
+            })).r
+          }
           label="Tool Bonus"
           withAsterisk
           hideControls
@@ -97,7 +106,12 @@ export default function Enhancing({ data }: Props) {
         />
         <NumberInput
           value={gearSpeed}
-          onChange={setGearSpeed}
+          onChange={(val) =>
+            userInfo.current.changeEnhancing((curr) => ({
+              ...curr,
+              gearSpeed: val,
+            })).r
+          }
           label="Gear Speed"
           withAsterisk
           hideControls
@@ -112,7 +126,12 @@ export default function Enhancing({ data }: Props) {
             clearable
             data={availableTeas}
             value={teas}
-            onChange={setTeas}
+            onChange={(val) =>
+              userInfo.current.changeEnhancing((curr) => ({
+                ...curr,
+                teas: val,
+              })).r
+            }
             label="Teas"
             maxSelectedValues={3}
             error={teaError}
@@ -124,14 +143,22 @@ export default function Enhancing({ data }: Props) {
           searchable
           size="lg"
           value={item}
-          onChange={setItem}
+          onChange={(val) =>
+            userInfo.current.changeEnhancing((curr) => ({ ...curr, item: val }))
+              .r
+          }
           data={itemOptions}
           label="Select an item"
           placeholder="Pick one"
         />
         <NumberInput
           value={target}
-          onChange={(value) => setTarget(value || 1)}
+          onChange={(value) =>
+            userInfo.current.changeEnhancing((curr) => ({
+              ...curr,
+              target: value || 1,
+            })).r
+          }
           label="Target Level"
           withAsterisk
           min={1}

@@ -1,14 +1,17 @@
 import { Flex, Select, Grid, Table, Title } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
-import { useMemo, useState } from "react";
+import { useContext, useMemo } from "react";
 import Icon from "./Icon";
+import { userInfoContext } from "../helpers/StoredUserData";
 
 interface Props {
   data: ApiData;
 }
 
 export default function ItemLookup({ data }: Props) {
-  const [item, setItem] = useState<string | null>(null);
+  const { userInfo } = useContext(userInfoContext);
+
+  const { item } = userInfo.current.ItemLookup;
 
   const items = useMemo(
     () =>
@@ -54,7 +57,10 @@ export default function ItemLookup({ data }: Props) {
         searchable
         size="lg"
         value={item}
-        onChange={setItem}
+        onChange={(val) =>
+          userInfo.current.changeItemLookup((curr) => ({ ...curr, item: val }))
+            .r
+        }
         data={items}
         label="Select an item"
       />

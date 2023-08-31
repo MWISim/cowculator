@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useContext } from "react";
 import { getFriendlyIntString } from "../helpers/Formatting";
 import { ItemDetail } from "../models/Client";
 import { MarketValue } from "../models/Market";
 import { ApiData } from "../services/ApiService";
 import { Flex, NumberInput, Table } from "@mantine/core";
 import Icon from "./Icon";
+import { userInfoContext } from "../helpers/StoredUserData";
 
 interface MonsterSpawnOverride {
   combatMonsterHrid: string;
@@ -213,9 +214,10 @@ interface Props {
 }
 
 export default function CombatTable({ action, data, kph }: Props) {
-  const [priceOverrides, setPriceOverrides] = useState<{
-    [key: string]: number | "";
-  }>({});
+  const { userInfo } = useContext(userInfoContext);
+
+  const { priceOverrides } = userInfo.current.CombatTable;
+
   const enemies =
     planetSpawnRates[action] ??
     data.actionDetails[action].monsterSpawnInfo.spawns ??
@@ -317,10 +319,10 @@ export default function CombatTable({ action, data, kph }: Props) {
             placeholder={x.coinPerItem.toString()}
             disabled={x.itemHrid === "/items/coin"}
             onChange={(y) =>
-              setPriceOverrides({
-                ...priceOverrides,
-                [x.itemHrid]: y,
-              })
+              userInfo.current.changeCombatTable((curr) => ({
+                ...curr,
+                priceOverrides: { ...curr.priceOverrides, [x.itemHrid]: y },
+              })).r
             }
           />
         </td>

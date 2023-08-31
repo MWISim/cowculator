@@ -7,10 +7,11 @@ import {
   Grid,
 } from "@mantine/core";
 import { ActionDetailMap, Cost } from "../models/Client";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useContext } from "react";
 import { ApiData } from "../services/ApiService";
 import { getFriendlyIntString } from "../helpers/Formatting";
 import Icon from "./Icon";
+import { userInfoContext } from "../helpers/StoredUserData";
 
 interface Props {
   action: ActionDetailMap;
@@ -19,10 +20,9 @@ interface Props {
 }
 
 export default function ActionCalc({ action, fromRaw = false, data }: Props) {
-  const [priceOverrides, setPriceOverrides] = useState<{
-    [key: string]: number | "";
-  }>({});
-  const [teas, setTeas] = useState<string[]>([]);
+  const { userInfo } = useContext(userInfoContext);
+
+  const { priceOverrides, teas } = userInfo.current.ActionCalc;
   const availableTeas = Object.values(data.itemDetails)
     .filter((x) => x.consumableDetail.usableInActionTypeMap?.[action.type])
     .map((x) => ({
@@ -31,7 +31,7 @@ export default function ActionCalc({ action, fromRaw = false, data }: Props) {
     }));
 
   useEffect(() => {
-    setTeas([]);
+    userInfo.current.changeActionCalc((curr) => ({ ...curr, teas: [] }));
   }, [action]);
 
   if (!action.outputItems) return <Fragment />;
@@ -180,10 +180,10 @@ export default function ActionCalc({ action, fromRaw = false, data }: Props) {
             value={priceOverrides[x.hrid]}
             placeholder={getFriendlyIntString(getApproxValue(x.hrid))}
             onChange={(y) =>
-              setPriceOverrides({
-                ...priceOverrides,
-                [x.hrid]: y,
-              })
+              userInfo.current.changeActionCalc((curr) => ({
+                ...curr,
+                priceOverrides: { ...curr.priceOverrides, [x.hrid]: y },
+              })).r
             }
           />
         </td>
@@ -207,7 +207,12 @@ export default function ActionCalc({ action, fromRaw = false, data }: Props) {
           clearable
           data={availableTeas}
           value={teas}
-          onChange={setTeas}
+          onChange={(val) =>
+            userInfo.current.changeActionCalc((curr) => ({
+              ...curr,
+              teas: val,
+            })).r
+          }
           label="Teas"
           maxSelectedValues={3}
         />
@@ -262,10 +267,13 @@ export default function ActionCalc({ action, fromRaw = false, data }: Props) {
                     value={priceOverrides[outputItem.hrid]}
                     placeholder={getFriendlyIntString(outputCost)}
                     onChange={(y) =>
-                      setPriceOverrides({
-                        ...priceOverrides,
-                        [outputItem.hrid]: y,
-                      })
+                      userInfo.current.changeActionCalc((curr) => ({
+                        ...curr,
+                        priceOverrides: {
+                          ...curr.priceOverrides,
+                          [outputItem.hrid]: y,
+                        },
+                      })).r
                     }
                   />
                 </td>

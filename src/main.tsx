@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import { MantineProvider } from "@mantine/core";
+import { UserInfoProvider } from "./helpers/StoredUserData";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import App from "./App";
@@ -16,8 +17,10 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       theme={{ colorScheme: "dark" }}
     >
       <QueryClientProvider client={queryClient}>
-        <App />
-        <ReactQueryDevtools />
+        <UserInfoProvider>
+          <App />
+          <ReactQueryDevtools />
+        </UserInfoProvider>
       </QueryClientProvider>
     </MantineProvider>
   </React.StrictMode>

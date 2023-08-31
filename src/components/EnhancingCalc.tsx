@@ -2,10 +2,11 @@ import { Flex, Loader, NumberInput, Table, Title } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
 import { Cost, ItemDetail } from "../models/Client";
 import { MarketValue } from "../models/Market";
-import { useState } from "react";
+import { useContext } from "react";
 import { getFriendlyIntString } from "../helpers/Formatting";
 import Icon from "./Icon";
 import { Duration } from "luxon";
+import { userInfoContext } from "../helpers/StoredUserData";
 
 interface Props {
   data: ApiData;
@@ -29,12 +30,11 @@ export default function EnhancingCalc({
   target,
   teas,
 }: Props) {
+  const { userInfo } = useContext(userInfoContext);
+
+  const { protCostOverride, priceOverrides } = userInfo.current.EnhancingCalc;
   const toolBonus = toolPercent * 0.01;
   const action = data.actionDetails["/actions/enhancing/enhance"];
-  const [protCostOverride, setProtCostOverride] = useState<number | "">("");
-  const [priceOverrides, setPriceOverrides] = useState<{
-    [key: string]: number | "";
-  }>({});
 
   const blessedTeaBonus = teas.some((x) => x === "/items/blessed_tea")
     ? 0.01
@@ -298,10 +298,10 @@ export default function EnhancingCalc({
             disabled={x.itemHrid === "/items/coin"}
             value={priceOverrides[x.itemHrid]}
             onChange={(y) =>
-              setPriceOverrides({
-                ...priceOverrides,
-                [x.itemHrid]: y,
-              })
+              userInfo.current.changeEnhancingCalc((curr) => ({
+                ...curr,
+                priceOverrides: { ...curr.priceOverrides, [x.itemHrid]: y },
+              })).r
             }
           />
         </td>
@@ -324,7 +324,12 @@ export default function EnhancingCalc({
         placeholder={getFriendlyIntString(protectionCost)}
         min={1}
         value={protCostOverride}
-        onChange={setProtCostOverride}
+        onChange={(val) =>
+          userInfo.current.changeEnhancingCalc((curr) => ({
+            ...curr,
+            protCostOverride: val,
+          })).r
+        }
       />
       <Flex gap="lg">
         <Flex direction="column">

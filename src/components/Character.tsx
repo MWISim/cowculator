@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useContext } from "react";
 import { ApiData } from "../services/ApiService";
 import { Flex, NumberInput, Select, Table } from "@mantine/core";
 import { CategoryHrid } from "../models/Client";
+import { userInfoContext } from "../helpers/StoredUserData";
 
 export type CharacterType = {
   [key: string]: {
@@ -27,7 +28,9 @@ const excludedSkills = [
 ];
 
 export default function Character({ data }: Props) {
-  const [character, setCharacter] = useState<CharacterType>({});
+  const { userInfo } = useContext(userInfoContext);
+
+  const { character } = userInfo.current.Character;
 
   const relevantSkills = useMemo(
     () =>
@@ -38,6 +41,7 @@ export default function Character({ data }: Props) {
           if (a.sortIndex > b.sortIndex) return 1;
           return 0;
         }),
+
     [data.skillDetails]
   );
 
@@ -92,13 +96,13 @@ export default function Character({ data }: Props) {
           <NumberInput
             value={character[x.hrid]?.level || 1}
             onChange={(val) =>
-              setCharacter({
-                ...character,
-                [x.hrid]: {
-                  ...character[x.hrid],
-                  level: val || 1,
+              userInfo.current.changeCharacter((curr) => ({
+                ...curr,
+                character: {
+                  ...curr.character,
+                  [x.hrid]: { ...curr.character[x.hrid], level: val || 1 },
                 },
-              })
+              })).r
             }
             withAsterisk
             hideControls
@@ -112,13 +116,13 @@ export default function Character({ data }: Props) {
             size="lg"
             value={character[x.hrid]?.toolHrid}
             onChange={(val) =>
-              setCharacter({
-                ...character,
-                [x.hrid]: {
-                  ...character[x.hrid],
-                  toolHrid: val,
+              userInfo.current.changeCharacter((curr) => ({
+                ...curr,
+                character: {
+                  ...curr.character,
+                  [x.hrid]: { ...curr.character[x.hrid], toolHrid: val },
                 },
-              })
+              })).r
             }
             data={tools ?? []}
             placeholder="Empty"
@@ -128,13 +132,13 @@ export default function Character({ data }: Props) {
           <NumberInput
             value={character[x.hrid]?.toolLevel || 0}
             onChange={(val) =>
-              setCharacter({
-                ...character,
-                [x.hrid]: {
-                  ...character[x.hrid],
-                  toolLevel: val || 0,
+              userInfo.current.changeCharacter((curr) => ({
+                ...curr,
+                character: {
+                  ...curr.character,
+                  [x.hrid]: { ...curr.character[x.hrid], toolLevel: val || 0 },
                 },
-              })
+              })).r
             }
             min={0}
             max={20}

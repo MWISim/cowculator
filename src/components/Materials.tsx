@@ -1,10 +1,15 @@
 import { Flex, NumberInput, Table } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
 import { Cost } from "../models/Client";
-import { useMemo, useState } from "react";
+import { useContext, useMemo } from "react";
 import Icon from "./Icon";
 import { getFriendlyIntString } from "../helpers/Formatting";
-import { Skill, getActionSeconds, getTeaBonuses } from "../helpers/CommonFunctions";
+import {
+  Skill,
+  getActionSeconds,
+  getTeaBonuses,
+} from "../helpers/CommonFunctions";
+import { userInfoContext } from "../helpers/StoredUserData";
 
 interface Props {
   actionCategory: string;
@@ -31,9 +36,9 @@ export default function Materials({
   teas,
   skill,
 }: Props) {
-  const [priceOverrides, setPriceOverrides] = useState<{
-    [key: string]: number | "";
-  }>({});
+  const { userInfo } = useContext(userInfoContext);
+
+  const { priceOverrides } = userInfo.current.Materials;
 
   const {
     wisdomTeaBonus,
@@ -103,7 +108,10 @@ export default function Materials({
     let seconds = getActionSeconds(x.baseTimeCost, toolBonus);
     let exp = x.experienceGain.value * wisdomTeaBonus;
     const levelReq = x.levelRequirement.level;
-    const efficiency = Math.max(1, (100 + (effectiveLevel || 1) - levelReq) / 100) + efficiencyTeaBonus + ((gearEfficiency || 0) / 100);
+    const efficiency =
+      Math.max(1, (100 + (effectiveLevel || 1) - levelReq) / 100) +
+      efficiencyTeaBonus +
+      (gearEfficiency || 0) / 100;
 
     let actionsToTarget = 0;
 
@@ -212,10 +220,10 @@ export default function Materials({
               value={priceOverrides[x.hrid]}
               placeholder={`${getApproxValue(x.hrid)}`}
               onChange={(y) =>
-                setPriceOverrides({
-                  ...priceOverrides,
-                  [x.hrid]: y,
-                })
+                userInfo.current.changeMaterials((curr) => ({
+                  ...curr,
+                  priceOverrides: { ...curr.priceOverrides, [x.hrid]: y },
+                })).r
               }
             />
           </td>

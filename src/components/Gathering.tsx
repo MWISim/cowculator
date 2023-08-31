@@ -8,29 +8,23 @@ import {
 } from "@mantine/core";
 import { ApiData } from "../services/ApiService";
 import { ActionType, DropTable } from "../models/Client";
-import { useMemo, useState } from "react";
+import { useContext, useMemo } from "react";
 import Icon from "./Icon";
 import { getFriendlyIntString } from "../helpers/Formatting";
-import {
-  Skill,
-  getActionSeconds,
-  getTeaBonuses,
-} from "../helpers/CommonFunctions";
+import { getActionSeconds, getTeaBonuses } from "../helpers/CommonFunctions";
+import { UserDetails, userInfoContext } from "../helpers/StoredUserData";
 
 interface Props {
   type: ActionType;
   data: ApiData;
-  skill: Skill;
+  skill: keyof UserDetails["Gathering"];
 }
 
 export default function Gathering({ type, data, skill }: Props) {
-  const [level, setLevel] = useState<number>(1);
-  const [toolBonus, setToolBonus] = useState<number | "">(0);
-  const [gearEfficiency, setGearEfficiency] = useState<number | "">(0)
-  const [teas, setTeas] = useState([""]);
-  const [priceOverrides, setPriceOverrides] = useState<{
-    [key: string]: number | "";
-  }>({});
+  const { userInfo } = useContext(userInfoContext);
+
+  const { level, toolBonus, gearEfficiency, teas, priceOverrides } =
+    userInfo.current.Gathering[skill];
 
   const {
     levelTeaBonus,
@@ -154,10 +148,10 @@ export default function Gathering({ type, data, skill }: Props) {
             value={priceOverrides[x.hrid]}
             placeholder={`${getApproxValue(x.hrid)}`}
             onChange={(y) =>
-              setPriceOverrides({
-                ...priceOverrides,
-                [x.hrid]: y,
-              })
+              userInfo.current.changeGathering(skill, (curr) => ({
+                ...curr,
+                priceOverrides: { ...curr.priceOverrides, [x.hrid]: y },
+              })).r
             }
           />
         </td>
@@ -169,7 +163,10 @@ export default function Gathering({ type, data, skill }: Props) {
     const seconds = getActionSeconds(x.baseTimeCost, toolBonus);
     const exp = x.experienceGain.value * wisdomTeaBonus;
     const levelReq = x.levelRequirement.level;
-    const efficiency = Math.max(1, (100 + (effectiveLevel || 1) - levelReq) / 100) + efficiencyTeaBonus + ((gearEfficiency || 0) / 100);
+    const efficiency =
+      Math.max(1, (100 + (effectiveLevel || 1) - levelReq) / 100) +
+      efficiencyTeaBonus +
+      (gearEfficiency || 0) / 100;
 
     const lootPerAction = getItemsPerAction(x.dropTable).concat(
       getRareItemsPerAction(x.rareDropTable)
@@ -240,7 +237,12 @@ export default function Gathering({ type, data, skill }: Props) {
       >
         <NumberInput
           value={level}
-          onChange={(val) => setLevel(val || 1)}
+          onChange={(val) =>
+            userInfo.current.changeGathering(skill, (curr) => ({
+              ...curr,
+              level: val || 1,
+            })).r
+          }
           label="Level"
           withAsterisk
           hideControls
@@ -254,7 +256,12 @@ export default function Gathering({ type, data, skill }: Props) {
         />
         <NumberInput
           value={toolBonus}
-          onChange={setToolBonus}
+          onChange={(val) =>
+            userInfo.current.changeGathering(skill, (curr) => ({
+              ...curr,
+              toolBonus: val,
+            })).r
+          }
           label="Tool Bonus"
           withAsterisk
           hideControls
@@ -263,7 +270,12 @@ export default function Gathering({ type, data, skill }: Props) {
         />
         <NumberInput
           value={gearEfficiency}
-          onChange={setGearEfficiency}
+          onChange={(val) =>
+            userInfo.current.changeGathering(skill, (curr) => ({
+              ...curr,
+              gearEfficiency: val,
+            })).r
+          }
           label="Gear Efficiency"
           withAsterisk
           hideControls
@@ -273,7 +285,12 @@ export default function Gathering({ type, data, skill }: Props) {
         <MultiSelect
           data={availableTeas}
           value={teas}
-          onChange={setTeas}
+          onChange={(val) =>
+            userInfo.current.changeGathering(skill, (curr) => ({
+              ...curr,
+              teas: val,
+            })).r
+          }
           label="Teas"
           maxSelectedValues={3}
           error={teaError}
